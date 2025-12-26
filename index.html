@@ -454,10 +454,10 @@
           this.element.style.transform = 'scaleX(1)';
         }
         
-        // Z-index: Neil always in front of Leela when overlapping
-        // Neil gets base z-index of 20, Leela gets 10
+        // Z-index: Leela always in front of Neil when overlapping
+        // Leela gets base z-index of 20, Neil gets 10
         // This ensures consistent layering regardless of position
-        const baseZ = this.name === 'neil' ? 20 : 10;
+        const baseZ = this.name === 'leela' ? 20 : 10;
         this.element.style.zIndex = baseZ;
       }
 
