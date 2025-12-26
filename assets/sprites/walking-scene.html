@@ -387,19 +387,33 @@
       // State machine timing (in milliseconds)
       minWalkTime: 3000,      // Walk at least 3 seconds before potentially stopping
       maxWalkTime: 8000,      // Walk at most 8 seconds before stopping
-      minIdleTime: 1500,      // Idle at least 1.5 seconds
-      maxIdleTime: 4000,      // Idle at most 4 seconds
+      minIdleCycles: 3,       // Idle at least 3 full animation cycles
+      maxIdleTime: 5000,      // Idle at most 5 seconds
       thinkingChance: 0.35,   // 35% chance to think during idle
-      minThinkTime: 2000,     // Think at least 2 seconds
-      maxThinkTime: 5000,     // Think at most 5 seconds
+      minThinkCycles: 1,      // Think at least 1 full animation cycle
+      maxThinkTime: 6000,     // Think at most 6 seconds
       postThinkIdleTime: 800, // Brief idle after thinking before walking
+      // Animation speed multipliers (lower = slower)
+      idleAnimSpeed: 0.7,     // Idle animation 70% speed
+      thinkingAnimSpeed: 0.7, // Thinking animation 70% speed
+      // Easing transitions
+      slowDownDuration: 800,  // ms to slow down before stopping
+      speedUpDuration: 700,   // ms to speed up when starting to walk
       // Position offsets to align different sprites (in pixels at scale 1)
-      // Positive = shift forward (in direction of travel)
-      // Negative = shift backward (against direction of travel)
+      // Separate values for each direction since sprites may be asymmetric
       spriteOffsets: {
-        walk: 0,
-        idle: 20,      // Idle is slightly ahead of walk position
-        thinking: -15  // Thinking is behind idle position
+        // When walking RIGHT (direction = 1, sprite flipped)
+        right: {
+          walk: 0,
+          idle: 20,
+          thinking: -15
+        },
+        // When walking LEFT (direction = -1, sprite normal)
+        left: {
+          walk: 0,
+          idle: 20,      // Move right compared to walk
+          thinking: -15  // Move left compared to walk
+        }
       },
       transitionDuration: 150  // ms for state transition fade
     };
@@ -413,9 +427,13 @@
         this.stage = stage;
         
         // State machine
-        this.state = 'walking'; // walking, idle, thinking, post-think-idle
+        // States: walking, slowing, idle, thinking, post-think-idle, speeding
+        this.state = 'walking';
         this.stateStartTime = 0;
         this.nextStateChangeTime = 0;
+        
+        // Speed multiplier for easing (1 = full speed, 0 = stopped)
+        this.speedMultiplier = 1;
         
         // Current sprite config (starts with walk)
         this.currentSprite = 'walk';
@@ -459,6 +477,16 @@
       }
 
       /**
+       * Calculate how long one full animation cycle takes for a sprite
+       */
+      getAnimCycleDuration(spriteName, speedMultiplier = 1) {
+        const sprite = SPRITES.neil[spriteName];
+        const baseFrameTime = 1000 / sprite.fps;
+        const effectiveFrameTime = baseFrameTime / speedMultiplier;
+        return effectiveFrameTime * sprite.totalFrames;
+      }
+
+      /**
        * Schedule when the next state change should happen
        */
       scheduleNextStateChange(currentTime) {
@@ -468,14 +496,28 @@
           case 'walking':
             this.nextStateChangeTime = currentTime + this.randomBetween(CONFIG.minWalkTime, CONFIG.maxWalkTime);
             break;
-          case 'idle':
-            this.nextStateChangeTime = currentTime + this.randomBetween(CONFIG.minIdleTime, CONFIG.maxIdleTime);
+          case 'slowing':
+            this.nextStateChangeTime = currentTime + CONFIG.slowDownDuration;
             break;
-          case 'thinking':
-            this.nextStateChangeTime = currentTime + this.randomBetween(CONFIG.minThinkTime, CONFIG.maxThinkTime);
+          case 'idle': {
+            // Minimum time = at least N full animation cycles
+            const cycleDuration = this.getAnimCycleDuration('idle', CONFIG.idleAnimSpeed);
+            const minTime = cycleDuration * CONFIG.minIdleCycles;
+            this.nextStateChangeTime = currentTime + this.randomBetween(minTime, CONFIG.maxIdleTime);
             break;
+          }
+          case 'thinking': {
+            // Minimum time = at least N full animation cycles
+            const cycleDuration = this.getAnimCycleDuration('thinking', CONFIG.thinkingAnimSpeed);
+            const minTime = cycleDuration * CONFIG.minThinkCycles;
+            this.nextStateChangeTime = currentTime + this.randomBetween(minTime, CONFIG.maxThinkTime);
+            break;
+          }
           case 'post-think-idle':
             this.nextStateChangeTime = currentTime + CONFIG.postThinkIdleTime;
+            break;
+          case 'speeding':
+            this.nextStateChangeTime = currentTime + CONFIG.speedUpDuration;
             break;
         }
       }
@@ -517,6 +559,8 @@
         // Switch sprite based on state
         switch (newState) {
           case 'walking':
+          case 'slowing':
+          case 'speeding':
             this.switchSprite('walk');
             break;
           case 'idle':
@@ -537,16 +581,22 @@
         
         switch (this.state) {
           case 'walking':
-            // Stop and go idle
+            // Start slowing down before idle
+            this.transitionTo('slowing', currentTime);
+            break;
+          
+          case 'slowing':
+            // Finished slowing, now idle
+            this.speedMultiplier = 0;
             this.transitionTo('idle', currentTime);
             break;
             
           case 'idle':
-            // Either think or go back to walking
+            // Either think or start speeding up to walk
             if (Math.random() < CONFIG.thinkingChance) {
               this.transitionTo('thinking', currentTime);
             } else {
-              this.transitionTo('walking', currentTime);
+              this.transitionTo('speeding', currentTime);
             }
             break;
             
@@ -556,7 +606,13 @@
             break;
             
           case 'post-think-idle':
-            // Back to walking
+            // Start speeding up
+            this.transitionTo('speeding', currentTime);
+            break;
+          
+          case 'speeding':
+            // Finished speeding up, now walking at full speed
+            this.speedMultiplier = 1;
             this.transitionTo('walking', currentTime);
             break;
         }
@@ -612,16 +668,46 @@
         // Update state machine
         this.updateStateMachine(currentTime);
         
-        // Update animation frame
-        if (currentTime - this.lastFrameTime >= this.frameInterval) {
+        // Update speed multiplier during easing states
+        if (this.state === 'slowing') {
+          // Ease out: 1 → 0 over slowDownDuration
+          const elapsed = currentTime - this.stateStartTime;
+          const progress = Math.min(1, elapsed / CONFIG.slowDownDuration);
+          // Use cubic ease-out curve (smooth deceleration)
+          this.speedMultiplier = 1 - this.easeOutCubic(progress);
+        } else if (this.state === 'speeding') {
+          // Ease in: 0 → 1 over speedUpDuration
+          const elapsed = currentTime - this.stateStartTime;
+          const progress = Math.min(1, elapsed / CONFIG.speedUpDuration);
+          // Use cubic ease-in curve (starts very slow, then accelerates)
+          this.speedMultiplier = this.easeInCubic(progress);
+        }
+        
+        // Update animation frame (scale frame rate based on state)
+        let effectiveFrameInterval = this.frameInterval;
+        
+        if (this.state === 'slowing' || this.state === 'speeding') {
+          // Slow down animation proportionally to movement speed
+          // Use a minimum of 0.05 to prevent complete freeze, max interval of 500ms
+          const animSpeed = Math.max(0.05, this.speedMultiplier);
+          effectiveFrameInterval = Math.min(500, this.frameInterval / animSpeed);
+        } else if (this.state === 'idle' || this.state === 'post-think-idle') {
+          // Idle animation runs slower
+          effectiveFrameInterval = this.frameInterval / CONFIG.idleAnimSpeed;
+        } else if (this.state === 'thinking') {
+          // Thinking animation runs even slower
+          effectiveFrameInterval = this.frameInterval / CONFIG.thinkingAnimSpeed;
+        }
+        
+        if (currentTime - this.lastFrameTime >= effectiveFrameInterval) {
           this.currentFrame = (this.currentFrame + 1) % this.config.totalFrames;
           this.lastFrameTime = currentTime;
         }
         
-        // Only move when walking
-        if (this.state === 'walking') {
+        // Move when walking, slowing, or speeding (using speedMultiplier)
+        if (this.state === 'walking' || this.state === 'slowing' || this.state === 'speeding') {
           const scaleRatio = this.displayScale / this.referenceDisplayScale;
-          const movement = (this.speed * scaleRatio * deltaTime) / 1000;
+          const movement = (this.speed * this.speedMultiplier * scaleRatio * deltaTime) / 1000;
           this.x += movement * this.direction;
           
           // Boundary check
@@ -638,6 +724,23 @@
           }
         }
       }
+      
+      /**
+       * Easing functions
+       */
+      easeOutQuad(t) {
+        return t * (2 - t);
+      }
+      
+      // Cubic ease-in starts slower than quadratic
+      easeInCubic(t) {
+        return t * t * t;
+      }
+      
+      // Quartic ease-out for smoother deceleration
+      easeOutCubic(t) {
+        return 1 - Math.pow(1 - t, 3);
+      }
 
       /**
        * Render to DOM
@@ -651,14 +754,11 @@
         
         this.element.style.backgroundPosition = `${bgX}px ${bgY}px`;
         
-        // Apply position offset based on current sprite to align characters
-        const baseOffset = CONFIG.spriteOffsets[this.currentSprite] || 0;
-        // Scale the offset
-        const scaledOffset = baseOffset * this.displayScale;
-        // Multiply by direction so positive offset = forward in direction of travel
-        // direction 1 (right): positive offset shifts right (forward)
-        // direction -1 (left): positive offset shifts left (forward)
-        const finalOffset = scaledOffset * this.direction;
+        // Apply position offset based on current sprite and direction
+        // Use separate offsets for each direction since sprites may be asymmetric
+        const dirKey = this.direction === 1 ? 'right' : 'left';
+        const baseOffset = CONFIG.spriteOffsets[dirKey][this.currentSprite] || 0;
+        const finalOffset = baseOffset * this.displayScale;
         
         this.element.style.left = `${this.x + finalOffset}px`;
         
