@@ -1,0 +1,29 @@
+---
+id: "02-architecture"
+title: "Achievibit architecture"
+scene:
+  mood: "playful-serious"
+  characters:
+    - neil: "architect"
+    - leela: "sitting"
+  background:
+    type: "architecture-diagram"
+---
+
+# Achievibit architecture
+
+Achievibit is built on events. Code contributions trigger events, which trigger achievements, which create visibility.
+
+## Key components
+
+- **Event ingestion**: Pulls events from GitHub, GitLab, and other sources
+- **Achievement engine**: Evaluates events against achievement rules
+- **Display layer**: Shows achievements in dashboards and notifications
+- **API**: Allows teams to customize achievements and integrations
+
+## The architecture test
+
+If adding a new achievement type requires changing core code, the architecture isn't flexible enough.
+
+Event-driven architecture makes Achievibit extensible without being complex.
+

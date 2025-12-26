@@ -1,0 +1,29 @@
+---
+id: "03-failure-modes"
+title: "Designing for failure"
+scene:
+  mood: "grounded"
+  characters:
+    - neil: "architect"
+    - leela: "wandering"
+  background:
+    type: "failure-diagram"
+---
+
+# Designing for failure
+
+Systems fail. Good systems fail gracefully and make it easy to understand what went wrong.
+
+## What failure-aware design means
+
+- **Fail fast**: Detect problems early, before they cascade
+- **Fail clearly**: Errors explain what happened and what to do
+- **Fail safely**: Failures don't corrupt data or leave systems in bad states
+- **Fail observably**: Failures are logged and traceable
+
+## The failure test
+
+If a failure requires reading source code to understand, the system isn't failing clearly enough.
+
+Failure modes are part of the interface. Design them as carefully as success paths.
+

@@ -1,0 +1,29 @@
+---
+id: "03-integration-patterns"
+title: "Integration patterns"
+scene:
+  mood: "focused"
+  characters:
+    - neil: "builder"
+    - leela: "wandering"
+  background:
+    type: "integration-diagram"
+---
+
+# Integration patterns
+
+MCP enables consistent patterns for connecting agents to tools, databases, and APIs.
+
+## Common patterns
+
+- **Read-only access**: Agents can query but not modify
+- **Approval gates**: Agents propose changes, humans approve
+- **Scoped access**: Agents only see data relevant to their role
+- **Audit logging**: All agent actions are logged for review
+
+## The pattern test
+
+If every integration requires custom security logic, you're not using patterns—you're building one-offs.
+
+Good patterns make secure integrations the default, not the exception.
+

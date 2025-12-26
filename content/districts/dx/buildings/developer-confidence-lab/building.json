@@ -1,0 +1,8 @@
+{
+  "id": "developer-confidence-lab",
+  "name": "Developer Confidence Lab",
+  "summary": "Confidence is a product: make the system explain itself.",
+  "floors": ["01-confidence", "02-observability-for-humans", "03-onboarding"],
+  "visual": { "type": "lab", "height": "medium" }
+}
+

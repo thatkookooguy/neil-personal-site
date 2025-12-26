@@ -1,0 +1,9 @@
+{
+  "id": "architecture",
+  "name": "Architecture District",
+  "tagline": "Boundaries, events, and systems that scale socially.",
+  "description": "System design philosophy and real patterns: interfaces, events, and tradeoffs.",
+  "theme": { "style": "stone-and-steel", "mood": "grounded" },
+  "buildings": ["event-foundry", "platform-blueprints"]
+}
+

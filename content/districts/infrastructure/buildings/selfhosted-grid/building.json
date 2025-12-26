@@ -1,0 +1,8 @@
+{
+  "id": "selfhosted-grid",
+  "name": "Self-Hosted Grid",
+  "summary": "Why self-host, how to keep it sane, and where the line is.",
+  "floors": ["01-why-selfhost", "02-reliability", "03-security"],
+  "visual": { "type": "grid-tower", "height": "medium" }
+}
+

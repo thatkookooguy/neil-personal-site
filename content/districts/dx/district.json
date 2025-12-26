@@ -1,0 +1,9 @@
+{
+  "id": "dx",
+  "name": "Developer Experience District",
+  "tagline": "Build systems developers actually enjoy using.",
+  "description": "DX as a design discipline: workflows, defaults, reviewability, and confidence.",
+  "theme": { "style": "glass-tower", "mood": "bright-calm" },
+  "buildings": ["dx-tower", "developer-confidence-lab"]
+}
+

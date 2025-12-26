@@ -1,0 +1,8 @@
+{
+  "id": "agent-orchard",
+  "name": "Agent Orchard",
+  "summary": "Practical agent patterns: roles, rounds, and guardrails.",
+  "floors": ["01-ai-first-dx", "02-agents-in-teams", "03-guardrails", "04-evaluation"],
+  "visual": { "type": "campus", "height": "wide" }
+}
+

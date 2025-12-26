@@ -1,0 +1,29 @@
+---
+id: "02-unified-events"
+title: "Unified event modeling"
+scene:
+  mood: "grounded"
+  characters:
+    - neil: "architect"
+    - leela: "sitting"
+  background:
+    type: "event-flow"
+---
+
+# Unified event modeling
+
+Events are the language systems use to communicate. A unified event model makes that communication predictable and debuggable.
+
+## What unified events provide
+
+- **Consistency**: All events follow the same structure
+- **Traceability**: You can follow an event through the system
+- **Debuggability**: Events tell a story of what happened
+- **Extensibility**: New consumers can subscribe without changing producers
+
+## The event test
+
+If you can't trace an event from producer to consumer without reading code, your event model isn't unified enough.
+
+Events aren't just messages—they're the system's memory.
+

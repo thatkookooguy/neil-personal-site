@@ -1,0 +1,9 @@
+{
+  "id": "ai",
+  "name": "AI District",
+  "tagline": "AI that improves thinking, not noise.",
+  "description": "AI-first workflows, agents in teams, evaluation, and trust boundaries.",
+  "theme": { "style": "neon-foundry", "mood": "focused" },
+  "buildings": ["agent-orchard", "mcp-gateway"]
+}
+

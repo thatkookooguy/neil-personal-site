@@ -1,0 +1,9 @@
+{
+  "id": "infrastructure",
+  "name": "Infrastructure District",
+  "tagline": "Self-hosted systems with strong defaults.",
+  "description": "Reliability, security, automation, and pragmatic ops.",
+  "theme": { "style": "grid-industrial", "mood": "steady" },
+  "buildings": ["selfhosted-grid", "automation-docks"]
+}
+

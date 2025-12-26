@@ -1,0 +1,8 @@
+{
+  "id": "kibibit-hq",
+  "name": "Kibibit HQ",
+  "summary": "Open source as craft, community, and leverage.",
+  "floors": ["01-why-oss", "02-projects", "03-community"],
+  "visual": { "type": "hq", "height": "medium" }
+}
+

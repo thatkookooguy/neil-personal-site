@@ -1,0 +1,9 @@
+{
+  "id": "opensource",
+  "name": "Open Source District",
+  "tagline": "Building in public, with intent.",
+  "description": "Kibibit, Achievibit, and the philosophy behind open source work.",
+  "theme": { "style": "arcade", "mood": "playful-serious" },
+  "buildings": ["kibibit-hq", "achievibit-arcade"]
+}
+

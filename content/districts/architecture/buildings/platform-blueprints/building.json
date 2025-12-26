@@ -1,0 +1,8 @@
+{
+  "id": "platform-blueprints",
+  "name": "Platform Blueprints",
+  "summary": "How I design platforms: interfaces, failure modes, and clarity.",
+  "floors": ["01-principles", "02-interfaces", "03-failure-modes"],
+  "visual": { "type": "blueprint-hall", "height": "wide" }
+}
+

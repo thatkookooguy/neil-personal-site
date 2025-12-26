@@ -1,0 +1,8 @@
+{
+  "id": "automation-docks",
+  "name": "Automation Docks",
+  "summary": "Automations as products: triggers, guardrails, observability.",
+  "floors": ["01-automation-philosophy", "02-n8n-patterns", "03-home-lab-to-prod"],
+  "visual": { "type": "docks", "height": "wide" }
+}
+

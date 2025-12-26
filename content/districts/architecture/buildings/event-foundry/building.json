@@ -1,0 +1,8 @@
+{
+  "id": "event-foundry",
+  "name": "Event Foundry",
+  "summary": "Unified event modeling across systems and providers.",
+  "floors": ["01-boundaries", "02-unified-events", "03-tradeoffs", "04-examples"],
+  "visual": { "type": "foundry", "height": "tall" }
+}
+

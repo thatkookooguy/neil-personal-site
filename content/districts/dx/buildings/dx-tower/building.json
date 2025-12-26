@@ -1,0 +1,8 @@
+{
+  "id": "dx-tower",
+  "name": "DX Tower",
+  "summary": "Principles and practices that make development feel clear, fast, and safe.",
+  "floors": ["01-dx-definition", "02-workflows", "03-small-prs", "04-feedback-loops", "05-defaults"],
+  "visual": { "type": "skyscraper", "height": "tall" }
+}
+

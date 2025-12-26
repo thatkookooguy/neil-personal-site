@@ -1,0 +1,29 @@
+---
+id: "04-examples"
+title: "Event patterns in practice"
+scene:
+  mood: "grounded"
+  characters:
+    - neil: "builder"
+    - leela: "sitting"
+  background:
+    type: "example-diagram"
+---
+
+# Event patterns in practice
+
+Real event systems need to handle ordering, idempotency, and failure. Here's how I approach common patterns.
+
+## Key patterns
+
+- **Event ordering**: Use sequence numbers or timestamps to maintain order
+- **Idempotency**: Design consumers to handle duplicate events gracefully
+- **Failure handling**: Dead letter queues for events that can't be processed
+- **Schema evolution**: Version events so consumers can migrate gradually
+
+## The pattern test
+
+If you can't add a new event consumer without modifying existing code, your event system isn't flexible enough.
+
+Events enable loose coupling, but only if you design them thoughtfully.
+

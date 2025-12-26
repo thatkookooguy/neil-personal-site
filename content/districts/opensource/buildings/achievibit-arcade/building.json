@@ -1,0 +1,8 @@
+{
+  "id": "achievibit-arcade",
+  "name": "Achievibit Arcade",
+  "summary": "Gamification for engineering teams — achievements, events, and mini-games.",
+  "floors": ["01-what-is-achievibit", "02-architecture", "03-mini-games"],
+  "visual": { "type": "arcade", "height": "tall" }
+}
+

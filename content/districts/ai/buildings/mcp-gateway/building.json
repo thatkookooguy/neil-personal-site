@@ -1,0 +1,8 @@
+{
+  "id": "mcp-gateway",
+  "name": "MCP Gateway",
+  "summary": "Integration patterns and privacy-first boundaries for agent tooling.",
+  "floors": ["01-why-mcp", "02-redaction-and-trust", "03-integration-patterns"],
+  "visual": { "type": "gateway", "height": "tall" }
+}
+

@@ -1,0 +1,12 @@
+{
+  "id": "central-station",
+  "name": "Central Station",
+  "summary": "The entry point: positioning, what I do, and how to navigate.",
+  "floors": [
+    "01-welcome",
+    "02-what-i-do",
+    "03-how-to-explore"
+  ],
+  "visual": { "type": "station-hub", "height": "medium" }
+}
+

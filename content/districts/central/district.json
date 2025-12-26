@@ -1,0 +1,12 @@
+{
+  "id": "central",
+  "name": "Central Station",
+  "tagline": "Start here. Get the gist in 60 seconds.",
+  "description": "A quick overview of who I am, what I do, and how to explore the city.",
+  "theme": {
+    "style": "station",
+    "mood": "calm"
+  },
+  "buildings": ["central-station"]
+}
+
