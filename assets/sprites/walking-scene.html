@@ -14,11 +14,18 @@
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
       background: #1a1a2e;
-      height: 100vh;
+      height: 100dvh; /* Dynamic viewport height for mobile */
+      height: 100vh; /* Fallback for older browsers */
       color: #fff;
       overflow: hidden;
       display: flex;
       flex-direction: column;
+    }
+
+    @supports (height: 100dvh) {
+      body {
+        height: 100dvh;
+      }
     }
 
     /* Header */
@@ -155,6 +162,7 @@
       position: relative;
       height: 140px; /* Ground height + walking space */
       flex-shrink: 0;
+      background: #0f3460; /* Match sky gradient bottom color */
     }
 
     /* Ground */
