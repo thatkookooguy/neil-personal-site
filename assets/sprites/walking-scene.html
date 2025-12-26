@@ -342,10 +342,11 @@
 
     // Configuration
     const CONFIG = {
-      neilSpeed: 80,        // pixels per second
-      leelaSpeed: 55,       // pixels per second (slower for shorter stride)
+      neilSpeed: 80,        // pixels per second (calibrated at reference scale)
+      leelaSpeed: 55,       // pixels per second (calibrated at reference scale)
       leelaHeightRatio: 0.4, // Leela's height relative to Neil
-      edgePadding: 50       // pixels from edge before turning
+      edgePadding: 50,      // pixels from edge before turning
+      referenceScale: 0.75  // The scale at which speeds are calibrated
     };
 
     // ============================================
@@ -369,6 +370,7 @@
         
         // Display scale (will be set by updateScale)
         this.displayScale = 1;
+        this.referenceDisplayScale = null; // Set on first scale to track reference
         
         // Create DOM element
         this.element = document.createElement('div');
@@ -380,6 +382,11 @@
        * Set display scale and update element dimensions
        */
       setScale(scale) {
+        // Capture reference scale on first call (at default slider value)
+        if (this.referenceDisplayScale === null) {
+          this.referenceDisplayScale = scale;
+        }
+        
         this.displayScale = scale;
         
         const width = this.config.frameWidth * scale;
@@ -412,8 +419,10 @@
           this.lastFrameTime = currentTime;
         }
         
-        // Update position
-        const movement = (this.speed * deltaTime) / 1000;
+        // Update position - scale movement relative to each character's reference scale
+        // This keeps the "slide per cycle" visually consistent across different scales
+        const scaleRatio = this.displayScale / this.referenceDisplayScale;
+        const movement = (this.speed * scaleRatio * deltaTime) / 1000;
         this.x += movement * this.direction;
         
         // Check boundaries and reverse direction
