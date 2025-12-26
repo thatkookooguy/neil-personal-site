@@ -13,8 +13,8 @@
 
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
-      background: linear-gradient(to bottom, #1a1a2e 0%, #16213e 60%, #0f3460 100%);
-      min-height: 100vh;
+      background: #1a1a2e;
+      height: 100vh;
       color: #fff;
       overflow: hidden;
       display: flex;
@@ -129,27 +129,32 @@
       font-size: 0.85rem;
     }
 
-    /* Scene Container */
+    /* Scene Container - uses flexbox to push ground to bottom */
     .scene-container {
       flex: 1;
-      position: relative;
+      display: flex;
+      flex-direction: column;
       overflow: hidden;
-      min-height: 400px;
+      min-height: 0; /* Allow shrinking */
     }
 
-    /* Sky gradient overlay */
+    /* Sky - flexible area that expands/contracts */
     .sky {
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 20%;
+      flex: 1;
+      min-height: 50px;
       background: linear-gradient(
         to bottom,
-        transparent 0%,
-        rgba(15, 52, 96, 0.3) 100%
+        #1a1a2e 0%,
+        #16213e 40%,
+        #0f3460 100%
       );
-      pointer-events: none;
+    }
+
+    /* Ground area - fixed height at bottom */
+    .ground-area {
+      position: relative;
+      height: 140px; /* Ground height + walking space */
+      flex-shrink: 0;
     }
 
     /* Ground */
@@ -188,13 +193,13 @@
       opacity: 0.6;
     }
 
-    /* Walking Stage - where characters walk */
+    /* Walking Stage - where characters walk, above the ground */
     .walking-stage {
       position: absolute;
-      bottom: 60px; /* Lowered to touch ground better */
+      bottom: 60px;
       left: 0;
       right: 0;
-      height: calc(100% - 60px);
+      top: 0;
     }
 
     /* Character sprites */
@@ -232,30 +237,6 @@
     .sprite-leela::after {
       width: 120%;
       height: 8px;
-    }
-
-    /* Info panel */
-    .info-panel {
-      position: absolute;
-      bottom: 100px;
-      right: 20px;
-      background: rgba(0, 0, 0, 0.5);
-      backdrop-filter: blur(10px);
-      padding: 1rem;
-      border-radius: 8px;
-      font-family: monospace;
-      font-size: 0.75rem;
-      color: #a0a0a0;
-      z-index: 50;
-    }
-
-    .info-panel .label {
-      color: #f39c12;
-      font-weight: bold;
-    }
-
-    .info-panel .row {
-      margin-bottom: 0.25rem;
     }
 
     /* Keyboard hints */
@@ -302,14 +283,11 @@
 
   <div class="scene-container">
     <div class="sky"></div>
-    <div class="walking-stage" id="walkingStage">
-      <!-- Characters will be added via JavaScript -->
-    </div>
-    <div class="ground"></div>
-    
-    <div class="info-panel" id="infoPanel">
-      <div class="row"><span class="label">Neil:</span> <span id="neilInfo">--</span></div>
-      <div class="row"><span class="label">Leela:</span> <span id="leelaInfo">--</span></div>
+    <div class="ground-area">
+      <div class="walking-stage" id="walkingStage">
+        <!-- Characters will be added via JavaScript -->
+      </div>
+      <div class="ground"></div>
     </div>
   </div>
 
@@ -469,14 +447,6 @@
         const baseZ = this.name === 'leela' ? 20 : 10;
         this.element.style.zIndex = baseZ;
       }
-
-      /**
-       * Get info string for debug panel
-       */
-      getInfo() {
-        const dir = this.direction === 1 ? '→' : '←';
-        return `x:${Math.round(this.x)} ${dir} frame:${this.currentFrame + 1}/${this.config.totalFrames}`;
-      }
     }
 
     // ============================================
@@ -495,8 +465,6 @@
         this.playPauseBtn = document.getElementById('playPauseBtn');
         this.scaleSlider = document.getElementById('scaleSlider');
         this.scaleValue = document.getElementById('scaleValue');
-        this.neilInfoEl = document.getElementById('neilInfo');
-        this.leelaInfoEl = document.getElementById('leelaInfo');
         
         // Initialize
         this.createCharacters();
@@ -646,10 +614,6 @@
         
         // Always render (even when paused, to reflect scale changes)
         this.characters.forEach(char => char.render());
-        
-        // Update info panel
-        this.neilInfoEl.textContent = this.neil.getInfo();
-        this.leelaInfoEl.textContent = this.leela.getInfo();
         
         // Continue animation loop
         this.animationId = requestAnimationFrame((t) => this.animate(t));
