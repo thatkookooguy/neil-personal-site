@@ -160,7 +160,7 @@
     /* Ground area - fixed height at bottom */
     .ground-area {
       position: relative;
-      height: var(--ground-area-height, 140px); /* Ground height + walking space */
+      height: 140px; /* Ground height + walking space */
       flex-shrink: 0;
       background: #0f3460; /* Match sky gradient bottom color */
     }
@@ -171,7 +171,7 @@
       bottom: 0;
       left: 0;
       right: 0;
-      height: var(--ground-height, 80px);
+      height: 80px;
       background: linear-gradient(
         to bottom,
         #2d5016 0%,
@@ -204,7 +204,7 @@
     /* Walking Stage - where characters walk, above the ground */
     .walking-stage {
       position: absolute;
-      bottom: var(--walking-stage-bottom, 60px);
+      bottom: 60px;
       left: 0;
       right: 0;
       top: 0;
@@ -1516,24 +1516,6 @@
       
       if (isScreensaver) {
         document.body.classList.add('screensaver');
-      }
-
-      // Check for custom ground height
-      // Default: 80px ground height
-      // Characters are positioned 20px into the ground (feet embedded in grass)
-      const DEFAULT_GROUND_HEIGHT = 80;
-      const CHARACTER_GROUND_OFFSET = 20; // How far into the ground the characters' feet are
-      const ABOVE_GROUND_CLEARANCE = 60; // Space above ground for character rendering
-      
-      const groundHeightParam = urlParams.get('groundHeight');
-      if (groundHeightParam) {
-        const groundHeight = parseInt(groundHeightParam, 10);
-        if (!isNaN(groundHeight) && groundHeight > 0) {
-          const root = document.documentElement;
-          root.style.setProperty('--ground-height', `${groundHeight}px`);
-          root.style.setProperty('--ground-area-height', `${groundHeight + ABOVE_GROUND_CLEARANCE}px`);
-          root.style.setProperty('--walking-stage-bottom', `${groundHeight - CHARACTER_GROUND_OFFSET}px`);
-        }
       }
 
       // Preload all sprites silently, then start entrance animation
