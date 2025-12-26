@@ -1,0 +1,162 @@
+---
+import CityLayout from '@/layouts/CityLayout.astro';
+
+// In a full implementation, this would load from content/city.json
+const districts = [
+  { id: 'central', name: 'Central Station', description: 'Welcome hub and navigation center' },
+  { id: 'ai', name: 'AI District', description: 'Exploring AI workflows and agent architectures' },
+  { id: 'architecture', name: 'Architecture District', description: 'System design and platform engineering' },
+  { id: 'dx', name: 'DX District', description: 'Developer experience and tooling' },
+  { id: 'infrastructure', name: 'Infrastructure District', description: 'Self-hosting and automation' },
+  { id: 'opensource', name: 'Open Source District', description: 'Community projects and contributions' },
+];
+---
+
+<CityLayout title="Welcome">
+  <section class="city-view">
+    <div class="city-intro">
+      <h1>Welcome to Neil's City</h1>
+      <p class="intro-text">
+        A portfolio of work across AI, Architecture, DX, Infrastructure, and Open Source.
+        Explore the city to discover insights and projects.
+      </p>
+    </div>
+    
+    <div class="isometric-container">
+      <div class="city-grid">
+        <!-- Placeholder for isometric city visualization -->
+        <div class="city-placeholder" aria-label="Isometric city view">
+          <p>🏙️ Isometric City View Coming Soon</p>
+        </div>
+      </div>
+    </div>
+    
+    <nav class="district-cards" aria-label="Navigate to districts">
+      <h2 class="sr-only">Districts</h2>
+      {districts.map((district) => (
+        <a href={`/${district.id}`} class="district-card" data-district={district.id}>
+          <h3 class="district-card-title">{district.name}</h3>
+          <p class="district-card-description">{district.description}</p>
+        </a>
+      ))}
+    </nav>
+  </section>
+</CityLayout>
+
+<style>
+  .city-view {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: var(--space-8) var(--container-padding);
+    min-height: 100vh;
+  }
+  
+  .city-intro {
+    text-align: center;
+    max-width: var(--max-w-2xl);
+    margin-bottom: var(--space-12);
+    padding-top: var(--space-16);
+  }
+  
+  .city-intro h1 {
+    margin-bottom: var(--space-4);
+  }
+  
+  .intro-text {
+    font-size: var(--text-lg);
+    color: var(--text-secondary);
+  }
+  
+  .isometric-container {
+    width: 100%;
+    max-width: var(--max-w-4xl);
+    margin-bottom: var(--space-12);
+  }
+  
+  .city-grid {
+    aspect-ratio: 16 / 9;
+    background: var(--bg-subtle);
+    border-radius: var(--radius-2xl);
+    border: 1px solid var(--border-subtle);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .city-placeholder {
+    text-align: center;
+    color: var(--text-muted);
+    font-size: var(--text-xl);
+  }
+  
+  .district-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: var(--space-4);
+    width: 100%;
+    max-width: var(--max-w-6xl);
+  }
+  
+  .district-card {
+    display: block;
+    padding: var(--space-6);
+    background: var(--surface-default);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-xl);
+    text-decoration: none;
+    transition: 
+      transform var(--duration-200) var(--ease-out),
+      box-shadow var(--duration-200) var(--ease-out),
+      border-color var(--duration-200) var(--ease-out);
+  }
+  
+  .district-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+    border-color: var(--border-default);
+  }
+  
+  .district-card:focus-visible {
+    outline: 3px solid var(--focus-ring);
+    outline-offset: 2px;
+  }
+  
+  .district-card-title {
+    font-size: var(--text-xl);
+    font-weight: var(--font-semibold);
+    color: var(--text-primary);
+    margin-bottom: var(--space-2);
+  }
+  
+  .district-card-description {
+    color: var(--text-secondary);
+    font-size: var(--text-sm);
+    line-height: var(--leading-relaxed);
+  }
+  
+  /* District-specific card theming */
+  .district-card[data-district="central"] {
+    border-left: 4px solid var(--district-central-accent);
+  }
+  
+  .district-card[data-district="ai"] {
+    border-left: 4px solid var(--district-ai-accent);
+  }
+  
+  .district-card[data-district="architecture"] {
+    border-left: 4px solid var(--district-arch-accent);
+  }
+  
+  .district-card[data-district="dx"] {
+    border-left: 4px solid var(--district-dx-accent);
+  }
+  
+  .district-card[data-district="infrastructure"] {
+    border-left: 4px solid var(--district-infra-accent);
+  }
+  
+  .district-card[data-district="opensource"] {
+    border-left: 4px solid var(--district-oss-accent);
+  }
+</style>

@@ -1,0 +1,100 @@
+---
+import BaseLayout from './BaseLayout.astro';
+
+interface Props {
+  title: string;
+  description?: string;
+  districtId: string;
+}
+
+const { title, description, districtId } = Astro.props;
+---
+
+<BaseLayout title={title} description={description}>
+  <div class="district-wrapper" data-district={districtId}>
+    <header class="district-header">
+      <nav class="breadcrumb" aria-label="Breadcrumb">
+        <ol>
+          <li><a href="/">City</a></li>
+          <li aria-current="page">{title}</li>
+        </ol>
+      </nav>
+      <h1 class="district-title">{title}</h1>
+      {description && <p class="district-description">{description}</p>}
+    </header>
+    
+    <main class="district-main">
+      <slot />
+    </main>
+    
+    <aside class="district-sidebar">
+      <slot name="sidebar" />
+    </aside>
+  </div>
+</BaseLayout>
+
+<style>
+  .district-wrapper {
+    min-height: 100vh;
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr;
+    gap: var(--space-6);
+    padding: var(--container-padding);
+  }
+  
+  @media (min-width: 1024px) {
+    .district-wrapper {
+      grid-template-columns: 1fr 300px;
+    }
+  }
+  
+  .district-header {
+    grid-column: 1 / -1;
+    padding-top: var(--space-8);
+  }
+  
+  .breadcrumb ol {
+    display: flex;
+    gap: var(--space-2);
+    list-style: none;
+    padding: 0;
+    margin-bottom: var(--space-4);
+    font-size: var(--text-sm);
+    color: var(--text-secondary);
+  }
+  
+  .breadcrumb li:not(:last-child)::after {
+    content: '/';
+    margin-left: var(--space-2);
+    color: var(--text-muted);
+  }
+  
+  .breadcrumb a {
+    color: var(--text-link);
+  }
+  
+  .district-title {
+    margin-bottom: var(--space-2);
+  }
+  
+  .district-description {
+    color: var(--text-secondary);
+    font-size: var(--text-lg);
+    max-width: var(--max-w-2xl);
+  }
+  
+  .district-main {
+    /* Main content area */
+  }
+  
+  .district-sidebar {
+    display: none;
+  }
+  
+  @media (min-width: 1024px) {
+    .district-sidebar {
+      display: block;
+    }
+  }
+</style>

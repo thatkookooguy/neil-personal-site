@@ -1,0 +1,215 @@
+---
+import BuildingLayout from '@/layouts/BuildingLayout.astro';
+
+// Define static paths for all buildings
+export async function getStaticPaths() {
+  // In a full implementation, this would read from content/districts/*/buildings/
+  const buildings = [
+    // Central
+    { district: 'central', districtName: 'Central Station', id: 'central-station', name: 'Central Station', description: 'The main hub of the city', floors: [
+      { id: '01-welcome', title: 'Welcome', summary: 'Introduction to the city' },
+      { id: '02-what-i-do', title: 'What I Do', summary: 'Overview of my work' },
+      { id: '03-how-to-explore', title: 'How to Explore', summary: 'Navigation guide' },
+    ]},
+    
+    // AI District
+    { district: 'ai', districtName: 'AI District', id: 'agent-orchard', name: 'Agent Orchard', description: 'AI-first developer experience', floors: [
+      { id: '01-ai-first-dx', title: 'AI-First DX', summary: 'Building for AI-first workflows' },
+      { id: '02-agents-in-teams', title: 'Agents in Teams', summary: 'Integrating AI agents in development teams' },
+      { id: '03-guardrails', title: 'Guardrails', summary: 'Safety and control mechanisms' },
+      { id: '04-evaluation', title: 'Evaluation', summary: 'Testing and evaluating AI systems' },
+    ]},
+    { district: 'ai', districtName: 'AI District', id: 'mcp-gateway', name: 'MCP Gateway', description: 'Model Context Protocol patterns', floors: [
+      { id: '01-why-mcp', title: 'Why MCP', summary: 'Introduction to Model Context Protocol' },
+      { id: '02-redaction-and-trust', title: 'Redaction and Trust', summary: 'Security and privacy patterns' },
+      { id: '03-integration-patterns', title: 'Integration Patterns', summary: 'Connecting MCP to your systems' },
+    ]},
+    
+    // Architecture District
+    { district: 'architecture', districtName: 'Architecture District', id: 'event-foundry', name: 'Event Foundry', description: 'Event-driven architecture patterns', floors: [
+      { id: '01-boundaries', title: 'Boundaries', summary: 'Defining system boundaries' },
+      { id: '02-unified-events', title: 'Unified Events', summary: 'Creating consistent event schemas' },
+      { id: '03-tradeoffs', title: 'Tradeoffs', summary: 'Understanding architectural tradeoffs' },
+      { id: '04-examples', title: 'Examples', summary: 'Real-world implementations' },
+    ]},
+    { district: 'architecture', districtName: 'Architecture District', id: 'platform-blueprints', name: 'Platform Blueprints', description: 'Platform engineering principles', floors: [
+      { id: '01-principles', title: 'Principles', summary: 'Core platform principles' },
+      { id: '02-interfaces', title: 'Interfaces', summary: 'Designing platform interfaces' },
+      { id: '03-failure-modes', title: 'Failure Modes', summary: 'Handling failures gracefully' },
+    ]},
+    
+    // DX District
+    { district: 'dx', districtName: 'DX District', id: 'developer-confidence-lab', name: 'Developer Confidence Lab', description: 'Building confidence in development', floors: [
+      { id: '01-confidence', title: 'Confidence', summary: 'What is developer confidence' },
+      { id: '02-observability-for-humans', title: 'Observability for Humans', summary: 'Making systems understandable' },
+      { id: '03-onboarding', title: 'Onboarding', summary: 'Getting developers up to speed' },
+    ]},
+    { district: 'dx', districtName: 'DX District', id: 'dx-tower', name: 'DX Tower', description: 'Developer experience fundamentals', floors: [
+      { id: '01-dx-definition', title: 'DX Definition', summary: 'Defining developer experience' },
+      { id: '02-workflows', title: 'Workflows', summary: 'Optimizing development workflows' },
+      { id: '03-small-prs', title: 'Small PRs', summary: 'The art of small pull requests' },
+      { id: '04-feedback-loops', title: 'Feedback Loops', summary: 'Fast feedback for developers' },
+      { id: '05-defaults', title: 'Defaults', summary: 'Smart defaults and conventions' },
+    ]},
+    
+    // Infrastructure District
+    { district: 'infrastructure', districtName: 'Infrastructure District', id: 'automation-docks', name: 'Automation Docks', description: 'Automation patterns and practices', floors: [
+      { id: '01-automation-philosophy', title: 'Automation Philosophy', summary: 'When and why to automate' },
+      { id: '02-n8n-patterns', title: 'n8n Patterns', summary: 'Workflow automation with n8n' },
+      { id: '03-home-lab-to-prod', title: 'Home Lab to Prod', summary: 'From experimentation to production' },
+    ]},
+    { district: 'infrastructure', districtName: 'Infrastructure District', id: 'selfhosted-grid', name: 'Self-Hosted Grid', description: 'Self-hosting infrastructure', floors: [
+      { id: '01-why-selfhost', title: 'Why Self-Host', summary: 'The case for self-hosting' },
+      { id: '02-reliability', title: 'Reliability', summary: 'Making self-hosted services reliable' },
+      { id: '03-security', title: 'Security', summary: 'Securing self-hosted infrastructure' },
+    ]},
+    
+    // Open Source District
+    { district: 'opensource', districtName: 'Open Source District', id: 'achievibit-arcade', name: 'Achievibit Arcade', description: 'Gamified achievements for git', floors: [
+      { id: '01-what-is-achievibit', title: 'What is Achievibit', summary: 'Introduction to achievibit' },
+      { id: '02-architecture', title: 'Architecture', summary: 'Technical architecture' },
+      { id: '03-mini-games', title: 'Mini Games', summary: 'Gamification features' },
+    ]},
+    { district: 'opensource', districtName: 'Open Source District', id: 'kibibit-hq', name: 'Kibibit HQ', description: 'Open source organization', floors: [
+      { id: '01-why-oss', title: 'Why OSS', summary: 'The value of open source' },
+      { id: '02-projects', title: 'Projects', summary: 'Notable projects' },
+      { id: '03-community', title: 'Community', summary: 'Building community' },
+    ]},
+  ];
+  
+  return buildings.map((building) => ({
+    params: { district: building.district, building: building.id },
+    props: { building },
+  }));
+}
+
+interface Props {
+  building: {
+    district: string;
+    districtName: string;
+    id: string;
+    name: string;
+    description: string;
+    floors: Array<{
+      id: string;
+      title: string;
+      summary: string;
+    }>;
+  };
+}
+
+const { building } = Astro.props;
+---
+
+<BuildingLayout 
+  title={building.name}
+  description={building.description}
+  districtId={building.district}
+  districtName={building.districtName}
+  buildingId={building.id}
+>
+  <Fragment slot="cutaway">
+    <div class="cutaway-placeholder">
+      <p>Building Cutaway</p>
+      <p class="floor-count">{building.floors.length} floors</p>
+    </div>
+  </Fragment>
+  
+  <section class="floor-list" aria-label="Floors in this building">
+    <h2 class="sr-only">Floors</h2>
+    {building.floors.map((floor, index) => (
+      <a 
+        href={`/${building.district}/${building.id}/${floor.id}`}
+        class="floor-item"
+      >
+        <span class="floor-number">Floor {building.floors.length - index}</span>
+        <div class="floor-content">
+          <h3 class="floor-title">{floor.title}</h3>
+          <p class="floor-summary">{floor.summary}</p>
+        </div>
+      </a>
+    ))}
+  </section>
+</BuildingLayout>
+
+<style>
+  .cutaway-placeholder {
+    height: 100%;
+    min-height: 300px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-muted);
+    background: linear-gradient(
+      to bottom,
+      var(--bg-subtle) 0%,
+      var(--bg-muted) 100%
+    );
+    border-radius: var(--radius-lg);
+  }
+  
+  .floor-count {
+    font-size: var(--text-sm);
+    margin-top: var(--space-2);
+  }
+  
+  .floor-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+  
+  .floor-item {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-4);
+    padding: var(--space-4);
+    background: var(--surface-default);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    text-decoration: none;
+    transition: 
+      transform var(--duration-150) var(--ease-out),
+      box-shadow var(--duration-150) var(--ease-out),
+      border-color var(--duration-150) var(--ease-out);
+  }
+  
+  .floor-item:hover {
+    transform: translateX(4px);
+    border-color: var(--border-default);
+    box-shadow: var(--shadow-sm);
+  }
+  
+  .floor-item:focus-visible {
+    outline: 3px solid var(--focus-ring);
+    outline-offset: 2px;
+  }
+  
+  .floor-number {
+    font-size: var(--text-xs);
+    font-weight: var(--font-medium);
+    color: var(--text-muted);
+    background: var(--bg-muted);
+    padding: var(--space-1) var(--space-2);
+    border-radius: var(--radius-sm);
+    white-space: nowrap;
+  }
+  
+  .floor-content {
+    flex: 1;
+  }
+  
+  .floor-title {
+    font-size: var(--text-base);
+    font-weight: var(--font-semibold);
+    color: var(--text-primary);
+    margin-bottom: var(--space-1);
+  }
+  
+  .floor-summary {
+    font-size: var(--text-sm);
+    color: var(--text-secondary);
+    line-height: var(--leading-normal);
+  }
+</style>

@@ -1,0 +1,181 @@
+---
+import DistrictLayout from '@/layouts/DistrictLayout.astro';
+
+// Define static paths for all districts
+export async function getStaticPaths() {
+  // In a full implementation, this would read from content/districts/
+  const districts = [
+    { 
+      id: 'central', 
+      name: 'Central Station', 
+      description: 'Welcome hub and navigation center',
+      buildings: [
+        { id: 'central-station', name: 'Central Station', description: 'The main hub of the city' }
+      ]
+    },
+    { 
+      id: 'ai', 
+      name: 'AI District', 
+      description: 'Exploring AI workflows and agent architectures',
+      buildings: [
+        { id: 'agent-orchard', name: 'Agent Orchard', description: 'AI-first developer experience' },
+        { id: 'mcp-gateway', name: 'MCP Gateway', description: 'Model Context Protocol patterns' }
+      ]
+    },
+    { 
+      id: 'architecture', 
+      name: 'Architecture District', 
+      description: 'System design and platform engineering',
+      buildings: [
+        { id: 'event-foundry', name: 'Event Foundry', description: 'Event-driven architecture patterns' },
+        { id: 'platform-blueprints', name: 'Platform Blueprints', description: 'Platform engineering principles' }
+      ]
+    },
+    { 
+      id: 'dx', 
+      name: 'DX District', 
+      description: 'Developer experience and tooling',
+      buildings: [
+        { id: 'developer-confidence-lab', name: 'Developer Confidence Lab', description: 'Building confidence in development' },
+        { id: 'dx-tower', name: 'DX Tower', description: 'Developer experience fundamentals' }
+      ]
+    },
+    { 
+      id: 'infrastructure', 
+      name: 'Infrastructure District', 
+      description: 'Self-hosting and automation',
+      buildings: [
+        { id: 'automation-docks', name: 'Automation Docks', description: 'Automation patterns and practices' },
+        { id: 'selfhosted-grid', name: 'Self-Hosted Grid', description: 'Self-hosting infrastructure' }
+      ]
+    },
+    { 
+      id: 'opensource', 
+      name: 'Open Source District', 
+      description: 'Community projects and contributions',
+      buildings: [
+        { id: 'achievibit-arcade', name: 'Achievibit Arcade', description: 'Gamified achievements for git' },
+        { id: 'kibibit-hq', name: 'Kibibit HQ', description: 'Open source organization' }
+      ]
+    },
+  ];
+  
+  return districts.map((district) => ({
+    params: { district: district.id },
+    props: { district },
+  }));
+}
+
+interface Props {
+  district: {
+    id: string;
+    name: string;
+    description: string;
+    buildings: Array<{
+      id: string;
+      name: string;
+      description: string;
+    }>;
+  };
+}
+
+const { district } = Astro.props;
+---
+
+<DistrictLayout 
+  title={district.name} 
+  description={district.description}
+  districtId={district.id}
+>
+  <section class="district-view">
+    <div class="district-visual">
+      <!-- Placeholder for district visualization -->
+      <div class="visual-placeholder" aria-hidden="true">
+        <p>🏢 District View Coming Soon</p>
+      </div>
+    </div>
+    
+    <nav class="building-grid" aria-label="Buildings in this district">
+      <h2>Buildings</h2>
+      <div class="building-cards">
+        {district.buildings.map((building) => (
+          <a 
+            href={`/${district.id}/${building.id}`} 
+            class="building-card"
+          >
+            <h3 class="building-card-title">{building.name}</h3>
+            <p class="building-card-description">{building.description}</p>
+          </a>
+        ))}
+      </div>
+    </nav>
+  </section>
+</DistrictLayout>
+
+<style>
+  .district-view {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-8);
+  }
+  
+  .district-visual {
+    background: var(--bg-subtle);
+    border-radius: var(--radius-xl);
+    aspect-ratio: 16 / 9;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--border-subtle);
+  }
+  
+  .visual-placeholder {
+    color: var(--text-muted);
+    font-size: var(--text-lg);
+  }
+  
+  .building-grid h2 {
+    font-size: var(--heading-4-size);
+    margin-bottom: var(--space-4);
+  }
+  
+  .building-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: var(--space-4);
+  }
+  
+  .building-card {
+    display: block;
+    padding: var(--space-6);
+    background: var(--surface-default);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    text-decoration: none;
+    transition: 
+      transform var(--duration-200) var(--ease-out),
+      box-shadow var(--duration-200) var(--ease-out);
+  }
+  
+  .building-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+  }
+  
+  .building-card:focus-visible {
+    outline: 3px solid var(--focus-ring);
+    outline-offset: 2px;
+  }
+  
+  .building-card-title {
+    font-size: var(--text-lg);
+    font-weight: var(--font-semibold);
+    color: var(--text-primary);
+    margin-bottom: var(--space-2);
+  }
+  
+  .building-card-description {
+    color: var(--text-secondary);
+    font-size: var(--text-sm);
+  }
+</style>

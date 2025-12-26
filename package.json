@@ -1,11 +1,30 @@
 {
-  "name": "neil-personal-site",
+  "name": "neils-city-site",
+  "type": "module",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "Neil's City - A portfolio site presented as an isometric city",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "astro dev",
+    "build": "astro check && astro build",
+    "preview": "astro preview",
+    "astro": "astro",
+    "check": "astro check",
+    "lint": "eslint . --ext .ts,.tsx,.astro",
+    "format": "prettier --write .",
+    "type-check": "tsc --noEmit"
   },
-  "author": "thatkookooguy <neilkalman@gmail.com>",
-  "license": "MIT"
+  "dependencies": {
+    "@astrojs/mdx": "^4.3.13",
+    "@astrojs/react": "^4.4.2",
+    "@types/react": "^19.2.7",
+    "@types/react-dom": "^19.2.3",
+    "astro": "^5.16.6",
+    "react": "^19.2.3",
+    "react-dom": "^19.2.3",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.6",
+    "typescript": "^5.9.3"
+  }
 }

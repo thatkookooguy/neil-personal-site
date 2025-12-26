@@ -1,0 +1,206 @@
+/**
+ * Neil's City — Color Tokens
+ * Based on Studio Ghibli warmth + retro pixel art palettes
+ */
+
+:root {
+  /* ========================================
+     PRIMARY BRAND
+     ======================================== */
+  
+  /* --- Teal (Neil's signature color) --- */
+  --color-teal-50: #E8F5F5;
+  --color-teal-100: #C5E4E4;
+  --color-teal-200: #9DD1D1;
+  --color-teal-300: #6DBABA;
+  --color-teal-400: #45A3A3;
+  --color-teal-500: #2D8A8A;
+  --color-teal-600: #247070;
+  --color-teal-700: #1B5555;
+  --color-teal-800: #133B3B;
+  --color-teal-900: #0A2020;
+  
+  /* --- Warm Neutrals --- */
+  --color-warm-50: #FDF6E3;
+  --color-warm-100: #F5ECD8;
+  --color-warm-200: #E8DBC3;
+  --color-warm-300: #D4C4A8;
+  --color-warm-400: #B8A080;
+  --color-warm-500: #8C7355;
+  --color-warm-600: #6B5540;
+  --color-warm-700: #4D3D2E;
+  --color-warm-800: #3D2F27;
+  --color-warm-900: #261D18;
+  
+  /* --- Terracotta Accent --- */
+  --color-terracotta-50: #FEF3EE;
+  --color-terracotta-100: #FDE2D6;
+  --color-terracotta-200: #F9C4AD;
+  --color-terracotta-300: #F1A082;
+  --color-terracotta-400: #E8825D;
+  --color-terracotta-500: #D4714E;
+  --color-terracotta-600: #B85A3A;
+  --color-terracotta-700: #8F4429;
+  --color-terracotta-800: #66311D;
+  --color-terracotta-900: #3D1E11;
+  
+  /* --- Secondary Colors --- */
+  --color-golden: #E8B44C;
+  --color-sage: #7D9B76;
+  --color-coral: #E88D7D;
+  --color-lavender: #9B8AA8;
+  
+  /* --- Semantic: Status --- */
+  --color-success: #5C9E5C;
+  --color-success-light: #D4E8D4;
+  --color-success-dark: #3D6B3D;
+  
+  --color-warning: #D4A03D;
+  --color-warning-light: #F5ECD0;
+  --color-warning-dark: #A67C2E;
+  
+  --color-error: #C45C5C;
+  --color-error-light: #F5DCDC;
+  --color-error-dark: #943D3D;
+  
+  --color-info: #5C8FA8;
+  --color-info-light: #D8EBF3;
+  --color-info-dark: #3D6080;
+  
+  /* ========================================
+     SEMANTIC TOKENS — LIGHT MODE
+     ======================================== */
+  
+  /* --- Backgrounds --- */
+  --bg-default: var(--color-warm-50);
+  --bg-subtle: var(--color-warm-100);
+  --bg-muted: var(--color-warm-200);
+  --bg-inverse: var(--color-warm-800);
+  
+  /* --- Surfaces --- */
+  --surface-default: #FFFFFF;
+  --surface-raised: #FFFFFF;
+  --surface-overlay: #FFFFFF;
+  
+  /* --- Text --- */
+  --text-primary: var(--color-warm-800);
+  --text-secondary: var(--color-warm-600);
+  --text-muted: var(--color-warm-500);
+  --text-inverse: var(--color-warm-50);
+  --text-link: var(--color-teal-500);
+  --text-link-hover: var(--color-teal-700);
+  
+  /* --- Borders --- */
+  --border-default: var(--color-warm-300);
+  --border-subtle: var(--color-warm-200);
+  --border-strong: var(--color-warm-500);
+  
+  /* --- Actions --- */
+  --action-primary-bg: var(--color-teal-500);
+  --action-primary-bg-hover: var(--color-teal-600);
+  --action-primary-bg-active: var(--color-teal-700);
+  --action-primary-fg: #FFFFFF;
+  
+  --action-secondary-bg: var(--color-terracotta-500);
+  --action-secondary-bg-hover: var(--color-terracotta-600);
+  --action-secondary-fg: #FFFFFF;
+  
+  /* --- Focus & Selection --- */
+  --focus-ring: var(--color-teal-400);
+  --selection-bg: var(--color-teal-100);
+  
+  /* ========================================
+     DISTRICT THEMES
+     ======================================== */
+  
+  /* Central Station */
+  --district-central-accent: var(--color-golden);
+  --district-central-secondary: var(--color-terracotta-500);
+  --district-central-surface: var(--color-warm-50);
+  
+  /* AI District */
+  --district-ai-accent: var(--color-lavender);
+  --district-ai-secondary: #6B5BA8;
+  --district-ai-surface: #F5F0F8;
+  --district-ai-glow: #B8A0E8;
+  
+  /* Architecture District */
+  --district-arch-accent: var(--color-teal-500);
+  --district-arch-secondary: var(--color-teal-700);
+  --district-arch-surface: #F0F5F5;
+  --district-arch-grid: var(--color-teal-100);
+  
+  /* DX District */
+  --district-dx-accent: var(--color-teal-400);
+  --district-dx-secondary: var(--color-sage);
+  --district-dx-surface: #F8FCFA;
+  --district-dx-glass: #E8F5F0;
+  
+  /* Infrastructure District */
+  --district-infra-accent: var(--color-terracotta-600);
+  --district-infra-secondary: var(--color-warm-500);
+  --district-infra-surface: #F8F3ED;
+  --district-infra-metal: #A89888;
+  
+  /* Open Source District */
+  --district-oss-accent: var(--color-sage);
+  --district-oss-secondary: var(--color-coral);
+  --district-oss-surface: #F5F8F0;
+  --district-oss-pixel: #5CB85C;
+}
+
+/* ========================================
+   DARK MODE
+   ======================================== */
+
+[data-theme="dark"],
+.dark {
+  /* --- Backgrounds --- */
+  --bg-default: #1A1512;
+  --bg-subtle: #261D18;
+  --bg-muted: var(--color-warm-800);
+  --bg-inverse: var(--color-warm-50);
+  
+  /* --- Surfaces --- */
+  --surface-default: #2A221C;
+  --surface-raised: var(--color-warm-800);
+  --surface-overlay: var(--color-warm-700);
+  
+  /* --- Text --- */
+  --text-primary: var(--color-warm-100);
+  --text-secondary: var(--color-warm-300);
+  --text-muted: var(--color-warm-500);
+  --text-inverse: var(--color-warm-800);
+  --text-link: var(--color-teal-300);
+  --text-link-hover: var(--color-teal-200);
+  
+  /* --- Borders --- */
+  --border-default: var(--color-warm-700);
+  --border-subtle: var(--color-warm-800);
+  --border-strong: var(--color-warm-600);
+  
+  /* --- Actions --- */
+  --action-primary-bg: var(--color-teal-400);
+  --action-primary-bg-hover: var(--color-teal-300);
+  --action-primary-bg-active: var(--color-teal-500);
+  --action-primary-fg: var(--color-warm-900);
+  
+  /* --- District Adjustments --- */
+  --district-central-accent: #F5D88A;
+  --district-central-surface: #2A221C;
+  
+  --district-ai-accent: #B8A0E8;
+  --district-ai-surface: #251D2A;
+  
+  --district-arch-accent: var(--color-teal-300);
+  --district-arch-surface: #1A2525;
+  
+  --district-dx-accent: #A8E0D0;
+  --district-dx-surface: #1A2520;
+  
+  --district-infra-accent: #E88D60;
+  --district-infra-surface: #2A201A;
+  
+  --district-oss-accent: #A8D8A8;
+  --district-oss-surface: #1A251A;
+}
