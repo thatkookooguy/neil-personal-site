@@ -232,8 +232,12 @@
     }
 
     .sprite-neil {
-      background-image: url('./neil-walk-spritesheet.png');
       background-repeat: no-repeat;
+      transition: opacity 0.15s ease-out;
+    }
+    
+    .sprite-neil.transitioning {
+      opacity: 0.7;
     }
 
     .sprite-leela {
@@ -264,6 +268,25 @@
       border-radius: 3px;
       margin-right: 0.25rem;
       border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    /* State indicator for debugging - uses separate positioning to avoid flip */
+    .state-indicator {
+      position: absolute;
+      top: -20px;
+      left: 50%;
+      font-size: 10px;
+      background: rgba(0,0,0,0.5);
+      padding: 2px 6px;
+      border-radius: 3px;
+      white-space: nowrap;
+      opacity: 0;
+      transition: opacity 0.3s;
+      pointer-events: none;
+    }
+
+    .character:hover .state-indicator {
+      opacity: 1;
     }
   </style>
 </head>
@@ -305,74 +328,397 @@
     // ============================================
     const SPRITES = {
       neil: {
-        cols: 6,
-        rows: 6,
-        totalFrames: 36,
-        frameWidth: 163,
-        frameHeight: 268,
-        sheetWidth: 978,
-        sheetHeight: 1608,
-        fps: 10
+        walk: {
+          src: './neil-walk-spritesheet.png',
+          cols: 6,
+          rows: 6,
+          totalFrames: 36,
+          frameWidth: 163,
+          frameHeight: 268,
+          sheetWidth: 978,
+          sheetHeight: 1608,
+          fps: 10
+        },
+        idle: {
+          src: './neil-idle-spritesheet.png',
+          cols: 6,
+          rows: 6,
+          totalFrames: 36,
+          frameWidth: 226,
+          frameHeight: 450,
+          sheetWidth: 1356,
+          sheetHeight: 2700,
+          fps: 12
+        },
+        thinking: {
+          src: './neil-thinking-spritesheet.png',
+          cols: 6,
+          rows: 6,
+          totalFrames: 36,
+          frameWidth: 213,
+          frameHeight: 260,
+          sheetWidth: 1278,
+          sheetHeight: 1560,
+          fps: 10
+        }
       },
       leela: {
-        cols: 6,
-        rows: 6,
-        totalFrames: 36,
-        frameWidth: 287,
-        frameHeight: 269,
-        sheetWidth: 1722,
-        sheetHeight: 1614,
-        fps: 23
+        walk: {
+          src: './leela-walk-spritesheet.png',
+          cols: 6,
+          rows: 6,
+          totalFrames: 36,
+          frameWidth: 287,
+          frameHeight: 269,
+          sheetWidth: 1722,
+          sheetHeight: 1614,
+          fps: 23
+        }
       }
     };
 
     // Configuration
     const CONFIG = {
-      neilSpeed: 80,        // pixels per second (calibrated at reference scale)
-      leelaSpeed: 55,       // pixels per second (calibrated at reference scale)
-      leelaHeightRatio: 0.4, // Leela's height relative to Neil
-      edgePadding: 50,      // pixels from edge before turning
-      referenceScale: 0.75  // The scale at which speeds are calibrated
+      neilSpeed: 80,
+      leelaSpeed: 55,
+      leelaHeightRatio: 0.4,
+      edgePadding: 50,
+      referenceScale: 0.75,
+      // State machine timing (in milliseconds)
+      minWalkTime: 3000,      // Walk at least 3 seconds before potentially stopping
+      maxWalkTime: 8000,      // Walk at most 8 seconds before stopping
+      minIdleTime: 1500,      // Idle at least 1.5 seconds
+      maxIdleTime: 4000,      // Idle at most 4 seconds
+      thinkingChance: 0.35,   // 35% chance to think during idle
+      minThinkTime: 2000,     // Think at least 2 seconds
+      maxThinkTime: 5000,     // Think at most 5 seconds
+      postThinkIdleTime: 800, // Brief idle after thinking before walking
+      // Position offsets to align different sprites (in pixels at scale 1)
+      // Positive = shift forward (in direction of travel)
+      // Negative = shift backward (against direction of travel)
+      spriteOffsets: {
+        walk: 0,
+        idle: 20,      // Idle is slightly ahead of walk position
+        thinking: -15  // Thinking is behind idle position
+      },
+      transitionDuration: 150  // ms for state transition fade
     };
 
     // ============================================
-    // CHARACTER CLASS
+    // NEIL CHARACTER CLASS (with state machine)
     // ============================================
-    class Character {
-      constructor(name, spriteConfig, movementSpeed, stage) {
-        this.name = name;
-        this.config = spriteConfig;
-        this.speed = movementSpeed;
+    class NeilCharacter {
+      constructor(stage) {
+        this.name = 'neil';
         this.stage = stage;
+        
+        // State machine
+        this.state = 'walking'; // walking, idle, thinking, post-think-idle
+        this.stateStartTime = 0;
+        this.nextStateChangeTime = 0;
+        
+        // Current sprite config (starts with walk)
+        this.currentSprite = 'walk';
+        this.config = SPRITES.neil.walk;
         
         // Animation state
         this.currentFrame = 0;
         this.lastFrameTime = 0;
-        this.frameInterval = 1000 / spriteConfig.fps;
+        this.frameInterval = 1000 / this.config.fps;
         
         // Position state
         this.x = 0;
-        this.direction = 1; // 1 = moving right, -1 = moving left
+        this.direction = 1;
+        this.speed = CONFIG.neilSpeed;
         
-        // Display scale (will be set by updateScale)
+        // Display scale
         this.displayScale = 1;
-        this.referenceDisplayScale = null; // Set on first scale to track reference
+        this.referenceDisplayScale = null;
         
         // Create DOM element
         this.element = document.createElement('div');
-        this.element.className = `character sprite-${name}`;
+        this.element.className = 'character sprite-neil';
+        this.element.style.backgroundImage = `url('${this.config.src}')`;
+        
+        // State indicator (hover to see)
+        this.stateIndicator = document.createElement('div');
+        this.stateIndicator.className = 'state-indicator';
+        this.element.appendChild(this.stateIndicator);
+        
         this.stage.appendChild(this.element);
+        
+        // Schedule first state change
+        this.scheduleNextStateChange(performance.now());
       }
 
       /**
-       * Set display scale and update element dimensions
+       * Get random time between min and max
+       */
+      randomBetween(min, max) {
+        return min + Math.random() * (max - min);
+      }
+
+      /**
+       * Schedule when the next state change should happen
+       */
+      scheduleNextStateChange(currentTime) {
+        this.stateStartTime = currentTime;
+        
+        switch (this.state) {
+          case 'walking':
+            this.nextStateChangeTime = currentTime + this.randomBetween(CONFIG.minWalkTime, CONFIG.maxWalkTime);
+            break;
+          case 'idle':
+            this.nextStateChangeTime = currentTime + this.randomBetween(CONFIG.minIdleTime, CONFIG.maxIdleTime);
+            break;
+          case 'thinking':
+            this.nextStateChangeTime = currentTime + this.randomBetween(CONFIG.minThinkTime, CONFIG.maxThinkTime);
+            break;
+          case 'post-think-idle':
+            this.nextStateChangeTime = currentTime + CONFIG.postThinkIdleTime;
+            break;
+        }
+      }
+
+      /**
+       * Switch to a different sprite sheet with smooth transition
+       */
+      switchSprite(spriteName) {
+        if (this.currentSprite === spriteName) return;
+        
+        // Brief opacity dip for smoother transition
+        this.element.classList.add('transitioning');
+        
+        // Switch sprite immediately
+        this.currentSprite = spriteName;
+        this.config = SPRITES.neil[spriteName];
+        this.currentFrame = 0;
+        this.frameInterval = 1000 / this.config.fps;
+        
+        // Update background image
+        this.element.style.backgroundImage = `url('${this.config.src}')`;
+        
+        // Reapply scale with new sprite dimensions
+        this.applyScale();
+        
+        // Remove transitioning class after transition completes
+        setTimeout(() => {
+          this.element.classList.remove('transitioning');
+        }, CONFIG.transitionDuration);
+      }
+
+      /**
+       * Transition to a new state
+       */
+      transitionTo(newState, currentTime) {
+        this.state = newState;
+        this.scheduleNextStateChange(currentTime);
+        
+        // Switch sprite based on state
+        switch (newState) {
+          case 'walking':
+            this.switchSprite('walk');
+            break;
+          case 'idle':
+          case 'post-think-idle':
+            this.switchSprite('idle');
+            break;
+          case 'thinking':
+            this.switchSprite('thinking');
+            break;
+        }
+      }
+
+      /**
+       * Check if it's time to change state and do so
+       */
+      updateStateMachine(currentTime) {
+        if (currentTime < this.nextStateChangeTime) return;
+        
+        switch (this.state) {
+          case 'walking':
+            // Stop and go idle
+            this.transitionTo('idle', currentTime);
+            break;
+            
+          case 'idle':
+            // Either think or go back to walking
+            if (Math.random() < CONFIG.thinkingChance) {
+              this.transitionTo('thinking', currentTime);
+            } else {
+              this.transitionTo('walking', currentTime);
+            }
+            break;
+            
+          case 'thinking':
+            // Brief idle before walking again
+            this.transitionTo('post-think-idle', currentTime);
+            break;
+            
+          case 'post-think-idle':
+            // Back to walking
+            this.transitionTo('walking', currentTime);
+            break;
+        }
+      }
+
+      /**
+       * Set display scale
        */
       setScale(scale) {
-        // Capture reference scale on first call (at default slider value)
         if (this.referenceDisplayScale === null) {
           this.referenceDisplayScale = scale;
         }
+        this.displayScale = scale;
+        this.applyScale();
+      }
+
+      /**
+       * Apply current scale to element
+       * Normalizes all sprites to have the same height as the walk sprite
+       */
+      applyScale() {
+        const baseScale = this.displayScale;
         
+        // Target height is based on walk sprite at current scale
+        const targetHeight = SPRITES.neil.walk.frameHeight * baseScale;
+        
+        // Calculate the scale factor needed for current sprite to match target height
+        const spriteScale = targetHeight / this.config.frameHeight;
+        
+        const width = this.config.frameWidth * spriteScale;
+        const height = this.config.frameHeight * spriteScale;
+        const sheetW = this.config.sheetWidth * spriteScale;
+        const sheetH = this.config.sheetHeight * spriteScale;
+        
+        // Store the actual sprite scale for rendering
+        this.actualSpriteScale = spriteScale;
+        
+        this.element.style.width = `${width}px`;
+        this.element.style.height = `${height}px`;
+        this.element.style.backgroundSize = `${sheetW}px ${sheetH}px`;
+        
+        this.render();
+      }
+
+      getWidth() {
+        return this.config.frameWidth * this.displayScale;
+      }
+
+      /**
+       * Update animation and position
+       */
+      update(currentTime, deltaTime, stageWidth) {
+        // Update state machine
+        this.updateStateMachine(currentTime);
+        
+        // Update animation frame
+        if (currentTime - this.lastFrameTime >= this.frameInterval) {
+          this.currentFrame = (this.currentFrame + 1) % this.config.totalFrames;
+          this.lastFrameTime = currentTime;
+        }
+        
+        // Only move when walking
+        if (this.state === 'walking') {
+          const scaleRatio = this.displayScale / this.referenceDisplayScale;
+          const movement = (this.speed * scaleRatio * deltaTime) / 1000;
+          this.x += movement * this.direction;
+          
+          // Boundary check
+          const charWidth = this.getWidth();
+          const minX = CONFIG.edgePadding;
+          const maxX = stageWidth - charWidth - CONFIG.edgePadding;
+          
+          if (this.x >= maxX) {
+            this.x = maxX;
+            this.direction = -1;
+          } else if (this.x <= minX) {
+            this.x = minX;
+            this.direction = 1;
+          }
+        }
+      }
+
+      /**
+       * Render to DOM
+       */
+      render() {
+        const col = this.currentFrame % this.config.cols;
+        const row = Math.floor(this.currentFrame / this.config.cols);
+        const scale = this.actualSpriteScale || this.displayScale;
+        const bgX = -(col * this.config.frameWidth * scale);
+        const bgY = -(row * this.config.frameHeight * scale);
+        
+        this.element.style.backgroundPosition = `${bgX}px ${bgY}px`;
+        
+        // Apply position offset based on current sprite to align characters
+        const baseOffset = CONFIG.spriteOffsets[this.currentSprite] || 0;
+        // Scale the offset
+        const scaledOffset = baseOffset * this.displayScale;
+        // Multiply by direction so positive offset = forward in direction of travel
+        // direction 1 (right): positive offset shifts right (forward)
+        // direction -1 (left): positive offset shifts left (forward)
+        const finalOffset = scaledOffset * this.direction;
+        
+        this.element.style.left = `${this.x + finalOffset}px`;
+        
+        // Flip logic:
+        // - Walking/Idle: direction 1 (right) = flip, direction -1 (left) = normal
+        // - Thinking: flip based on direction (sprite faces away, so flip logic is same)
+        let isFlipped = false;
+        if (this.direction === 1) {
+          this.element.style.transform = 'scaleX(-1)';
+          isFlipped = true;
+        } else {
+          this.element.style.transform = 'scaleX(1)';
+          isFlipped = false;
+        }
+        
+        // Counter-flip the state indicator so text is always readable
+        this.stateIndicator.style.transform = isFlipped 
+          ? 'translateX(-50%) scaleX(-1)' 
+          : 'translateX(-50%)';
+        
+        this.element.style.zIndex = 10;
+        
+        // Update state indicator
+        this.stateIndicator.textContent = this.state;
+      }
+    }
+
+    // ============================================
+    // LEELA CHARACTER CLASS (simple, follows Neil)
+    // ============================================
+    class LeelaCharacter {
+      constructor(stage) {
+        this.name = 'leela';
+        this.config = SPRITES.leela.walk;
+        this.stage = stage;
+        
+        this.currentFrame = 0;
+        this.lastFrameTime = 0;
+        this.frameInterval = 1000 / this.config.fps;
+        
+        this.x = 0;
+        this.direction = 1;
+        this.speed = CONFIG.leelaSpeed;
+        
+        this.displayScale = 1;
+        this.referenceDisplayScale = null;
+        
+        // Following behavior
+        this.isFollowing = false;
+        this.targetX = 0;
+        
+        this.element = document.createElement('div');
+        this.element.className = 'character sprite-leela';
+        this.stage.appendChild(this.element);
+      }
+
+      setScale(scale) {
+        if (this.referenceDisplayScale === null) {
+          this.referenceDisplayScale = scale;
+        }
         this.displayScale = scale;
         
         const width = this.config.frameWidth * scale;
@@ -384,76 +730,58 @@
         this.element.style.height = `${height}px`;
         this.element.style.backgroundSize = `${sheetW}px ${sheetH}px`;
         
-        // Re-render to update background position
         this.render();
       }
 
-      /**
-       * Get current display width
-       */
       getWidth() {
         return this.config.frameWidth * this.displayScale;
       }
 
       /**
-       * Update animation frame and position
+       * Update - Leela moves independently of Neil
        */
       update(currentTime, deltaTime, stageWidth) {
-        // Update animation frame based on FPS
+        // Update animation frame (always animate)
         if (currentTime - this.lastFrameTime >= this.frameInterval) {
           this.currentFrame = (this.currentFrame + 1) % this.config.totalFrames;
           this.lastFrameTime = currentTime;
         }
         
-        // Update position - scale movement relative to each character's reference scale
-        // This keeps the "slide per cycle" visually consistent across different scales
+        // Leela always keeps moving independently
         const scaleRatio = this.displayScale / this.referenceDisplayScale;
         const movement = (this.speed * scaleRatio * deltaTime) / 1000;
         this.x += movement * this.direction;
         
-        // Check boundaries and reverse direction
+        // Boundary check
         const charWidth = this.getWidth();
         const minX = CONFIG.edgePadding;
         const maxX = stageWidth - charWidth - CONFIG.edgePadding;
         
         if (this.x >= maxX) {
           this.x = maxX;
-          this.direction = -1; // Turn left
+          this.direction = -1;
         } else if (this.x <= minX) {
           this.x = minX;
-          this.direction = 1; // Turn right
+          this.direction = 1;
         }
       }
 
-      /**
-       * Render current state to DOM
-       */
       render() {
-        // Update background position for current frame
         const col = this.currentFrame % this.config.cols;
         const row = Math.floor(this.currentFrame / this.config.cols);
         const bgX = -(col * this.config.frameWidth * this.displayScale);
         const bgY = -(row * this.config.frameHeight * this.displayScale);
         
         this.element.style.backgroundPosition = `${bgX}px ${bgY}px`;
-        
-        // Update position
         this.element.style.left = `${this.x}px`;
         
-        // Flip sprite based on direction
-        // Walking LEFT (direction = -1): normal orientation
-        // Walking RIGHT (direction = 1): flip horizontally
         if (this.direction === 1) {
           this.element.style.transform = 'scaleX(-1)';
         } else {
           this.element.style.transform = 'scaleX(1)';
         }
         
-        // Z-index: Leela always in front of Neil when overlapping
-        // Leela gets base z-index of 20, Neil gets 10
-        // This ensures consistent layering regardless of position
-        const baseZ = this.name === 'leela' ? 20 : 10;
-        this.element.style.zIndex = baseZ;
+        this.element.style.zIndex = 20;
       }
     }
 
@@ -463,89 +791,55 @@
     class WalkingScene {
       constructor() {
         this.stage = document.getElementById('walkingStage');
-        this.characters = [];
         this.isPaused = false;
         this.scale = 0.75;
         this.lastTime = 0;
         this.animationId = null;
         
-        // DOM elements
         this.playPauseBtn = document.getElementById('playPauseBtn');
         this.scaleSlider = document.getElementById('scaleSlider');
         this.scaleValue = document.getElementById('scaleValue');
         
-        // Initialize
-        this.createCharacters();
+        // Create characters
+        this.neil = new NeilCharacter(this.stage);
+        this.leela = new LeelaCharacter(this.stage);
+        
         this.bindEvents();
         this.updateScale(this.scale);
         this.setInitialPositions();
         
-        // Start animation
         this.animationId = requestAnimationFrame((t) => this.animate(t));
       }
 
-      /**
-       * Create Neil and Leela characters
-       */
-      createCharacters() {
-        // Create Neil
-        this.neil = new Character('neil', SPRITES.neil, CONFIG.neilSpeed, this.stage);
-        this.characters.push(this.neil);
-        
-        // Create Leela
-        this.leela = new Character('leela', SPRITES.leela, CONFIG.leelaSpeed, this.stage);
-        this.characters.push(this.leela);
-      }
-
-      /**
-       * Set initial positions (spread them out)
-       */
       setInitialPositions() {
         const stageWidth = this.stage.clientWidth || window.innerWidth;
         
-        // Neil starts from the left
         this.neil.x = CONFIG.edgePadding;
-        this.neil.direction = 1; // Walking right
+        this.neil.direction = 1;
         
-        // Leela starts from the right (but walks left initially)
         this.leela.x = stageWidth - this.leela.getWidth() - CONFIG.edgePadding;
-        this.leela.direction = -1; // Walking left
+        this.leela.direction = -1;
       }
 
-      /**
-       * Update scale for all characters
-       */
       updateScale(newScale) {
         this.scale = newScale;
-        
-        // Neil uses base scale
         this.neil.setScale(newScale);
         
-        // Leela's height should be LEELA_HEIGHT_RATIO of Neil's height
-        // Neil's displayed height = SPRITES.neil.frameHeight * scale
-        // Leela's target height = Neil's height * LEELA_HEIGHT_RATIO
-        // Leela's scale = targetHeight / SPRITES.leela.frameHeight
-        const neilDisplayHeight = SPRITES.neil.frameHeight * newScale;
+        const neilDisplayHeight = SPRITES.neil.walk.frameHeight * newScale;
         const leelaTargetHeight = neilDisplayHeight * CONFIG.leelaHeightRatio;
-        const leelaScale = leelaTargetHeight / SPRITES.leela.frameHeight;
+        const leelaScale = leelaTargetHeight / SPRITES.leela.walk.frameHeight;
         this.leela.setScale(leelaScale);
       }
 
-      /**
-       * Bind event listeners
-       */
       bindEvents() {
-        // Play/Pause button
         this.playPauseBtn.addEventListener('click', () => this.togglePlayPause());
         
-        // Scale slider
         this.scaleSlider.addEventListener('input', (e) => {
           const newScale = parseFloat(e.target.value);
           this.scaleValue.textContent = `${newScale}×`;
           this.updateScale(newScale);
         });
         
-        // Keyboard shortcuts
         document.addEventListener('keydown', (e) => {
           switch (e.code) {
             case 'Space':
@@ -565,36 +859,26 @@
           }
         });
         
-        // Handle window resize
         window.addEventListener('resize', () => {
-          // Ensure characters stay within bounds
           const stageWidth = this.stage.clientWidth;
-          this.characters.forEach(char => {
-            const maxX = stageWidth - char.getWidth() - CONFIG.edgePadding;
-            if (char.x > maxX) {
-              char.x = maxX;
-            }
-          });
+          const maxX = stageWidth - this.neil.getWidth() - CONFIG.edgePadding;
+          if (this.neil.x > maxX) this.neil.x = maxX;
+          
+          const leelaMaxX = stageWidth - this.leela.getWidth() - CONFIG.edgePadding;
+          if (this.leela.x > leelaMaxX) this.leela.x = leelaMaxX;
         });
       }
 
-      /**
-       * Toggle play/pause state
-       */
       togglePlayPause() {
         this.isPaused = !this.isPaused;
         this.playPauseBtn.textContent = this.isPaused ? '▶ Play' : '⏸ Pause';
         this.playPauseBtn.classList.toggle('paused', this.isPaused);
         
         if (!this.isPaused) {
-          // Reset lastTime to prevent jump after unpause
           this.lastTime = 0;
         }
       }
 
-      /**
-       * Adjust scale by delta
-       */
       adjustScale(delta) {
         const newScale = Math.max(0.25, Math.min(2, this.scale + delta));
         this.scale = newScale;
@@ -603,33 +887,27 @@
         this.updateScale(newScale);
       }
 
-      /**
-       * Animation loop
-       */
       animate(currentTime) {
-        // Calculate delta time
         const deltaTime = this.lastTime === 0 ? 0 : currentTime - this.lastTime;
         this.lastTime = currentTime;
         
         if (!this.isPaused && deltaTime > 0) {
           const stageWidth = this.stage.clientWidth;
           
-          // Update all characters
-          this.characters.forEach(char => {
-            char.update(currentTime, deltaTime, stageWidth);
-          });
+          // Update Neil
+          this.neil.update(currentTime, deltaTime, stageWidth);
+          
+          // Update Leela independently
+          this.leela.update(currentTime, deltaTime, stageWidth);
         }
         
-        // Always render (even when paused, to reflect scale changes)
-        this.characters.forEach(char => char.render());
+        // Always render
+        this.neil.render();
+        this.leela.render();
         
-        // Continue animation loop
         this.animationId = requestAnimationFrame((t) => this.animate(t));
       }
 
-      /**
-       * Cleanup
-       */
       destroy() {
         if (this.animationId) {
           cancelAnimationFrame(this.animationId);
@@ -638,7 +916,7 @@
     }
 
     // ============================================
-    // INITIALIZE SCENE
+    // INITIALIZE
     // ============================================
     const scene = new WalkingScene();
   </script>
