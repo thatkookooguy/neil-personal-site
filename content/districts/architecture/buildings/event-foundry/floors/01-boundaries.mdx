@@ -1,29 +1,28 @@
 ---
 id: "01-boundaries"
-title: "Boundaries that scale"
+title: "Boundaries before events"
 scene:
   mood: "grounded"
   characters:
     - neil: "architect"
     - leela: "wandering"
   background:
-    type: "boundary-diagram"
+    type: "service-boundaries"
 ---
 
-# Boundaries that scale
+# Boundaries before events
 
-Good boundaries make systems easier to understand, change, and operate. Bad boundaries create coupling and confusion.
+Event-driven systems only work if boundaries are clear first.
 
-## What boundaries define
+Events are not a shortcut around design — they *amplify* whatever structure already exists.
 
-- **Ownership**: Who is responsible for this piece?
-- **Interfaces**: How do other systems interact with this?
-- **Data**: What data lives here, and what's shared?
-- **Failure**: When this breaks, what else breaks?
+## My rule of thumb
 
-## The boundary test
+If you can't clearly explain:
+- who owns the data
+- who is allowed to emit changes
+- who is allowed to react
 
-If changing one service requires changing three others, your boundaries are wrong.
+then events will increase confusion instead of reducing it.
 
-Boundaries aren't just technical—they're organizational. They define how teams work together.
-
+Good event systems start with clear ownership, then add communication.

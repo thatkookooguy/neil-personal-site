@@ -1,29 +1,20 @@
 ---
 id: "03-home-lab-to-prod"
-title: "From home lab to production"
+title: "From lab to prod"
 scene:
-  mood: "steady"
+  mood: "grounded"
   characters:
-    - neil: "builder"
-    - leela: "wandering"
+    - neil: "architect"
+    - leela: "sitting"
   background:
-    type: "migration-path"
+    type: "environment-layers"
 ---
 
 # From home lab to production
 
-Home labs are great for experimentation, but production needs reliability. Here's how to bridge that gap.
+Experiments are valuable, but production needs discipline.
 
-## What production requires
-
-- **Monitoring**: You need to know when things break
-- **Backups**: Data loss isn't acceptable in production
-- **Documentation**: Someone else should be able to run it
-- **Security**: Production systems need proper access controls
-
-## The production test
-
-If you can't hand your automation to someone else and have them run it, it's not production-ready.
-
-Home labs teach you how things work. Production teaches you how things fail.
-
+I design paths where:
+- experiments can graduate
+- assumptions get tested
+- rollback is always possible

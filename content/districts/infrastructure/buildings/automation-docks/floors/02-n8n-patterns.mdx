@@ -1,29 +1,20 @@
 ---
 id: "02-n8n-patterns"
-title: "n8n patterns"
+title: "Automation patterns"
 scene:
-  mood: "steady"
+  mood: "focused"
   characters:
-    - neil: "builder"
-    - leela: "sitting"
+    - neil: "explainer"
+    - leela: "wandering"
   background:
-    type: "n8n-diagram"
+    type: "workflow-nodes"
 ---
 
-# n8n patterns
+# Automation patterns
 
-n8n is a powerful automation tool, but it needs structure to stay maintainable.
+I prefer:
+- explicit triggers
+- observable steps
+- manual overrides
 
-## Patterns I use
-
-- **Modular workflows**: Break complex automations into smaller, reusable pieces
-- **Error handling**: Every workflow has explicit error paths
-- **Logging**: Important decisions are logged for debugging
-- **Testing**: Test workflows with sample data before production
-
-## The n8n test
-
-If you can't understand what a workflow does by reading it, it's too complex.
-
-Workflows are code. Treat them with the same care as any other code.
-
+Visual workflows only help if they stay readable.

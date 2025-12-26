@@ -1,29 +1,23 @@
 ---
 id: "02-unified-events"
-title: "Unified event modeling"
+title: "Unifying events across systems"
 scene:
-  mood: "grounded"
+  mood: "focused"
   characters:
-    - neil: "architect"
+    - neil: "builder"
     - leela: "sitting"
   background:
-    type: "event-flow"
+    type: "event-mapping"
 ---
 
-# Unified event modeling
+# Unifying events across systems
 
-Events are the language systems use to communicate. A unified event model makes that communication predictable and debuggable.
+When multiple providers or platforms emit similar concepts differently, the cost isn't technical — it's cognitive.
 
-## What unified events provide
+## The approach I prefer
 
-- **Consistency**: All events follow the same structure
-- **Traceability**: You can follow an event through the system
-- **Debuggability**: Events tell a story of what happened
-- **Extensibility**: New consumers can subscribe without changing producers
+- Map external events into **internal canonical events**
+- Keep provider-specific logic at the edges
+- Let the rest of the system reason in one language
 
-## The event test
-
-If you can't trace an event from producer to consumer without reading code, your event model isn't unified enough.
-
-Events aren't just messages—they're the system's memory.
-
+This reduces coupling, simplifies testing, and makes it easier to evolve integrations independently.

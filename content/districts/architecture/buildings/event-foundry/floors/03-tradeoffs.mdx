@@ -1,29 +1,29 @@
 ---
 id: "03-tradeoffs"
-title: "Understanding tradeoffs"
+title: "Tradeoffs I make consciously"
 scene:
-  mood: "grounded"
+  mood: "calm"
   characters:
-    - neil: "architect"
-    - leela: "wandering"
+    - neil: "thinking"
+    - leela: "lying"
   background:
-    type: "tradeoff-matrix"
+    type: "decision-matrix"
 ---
 
-# Understanding tradeoffs
+# Tradeoffs I make consciously
 
-Every architectural decision involves tradeoffs. The key is making them explicit and choosing deliberately.
+I rarely optimize for maximum flexibility.
 
-## Common tradeoffs
+Instead, I prefer:
+- fewer concepts
+- clearer flows
+- explicit constraints
 
-- **Consistency vs. availability**: Can you wait for consistency, or do you need immediate availability?
-- **Simplicity vs. flexibility**: Do you optimize for now or for future changes?
-- **Performance vs. maintainability**: How much complexity are you willing to accept for speed?
-- **Centralization vs. distribution**: Where should logic live?
+This sometimes means:
+- slower initial experimentation
+- saying "no" to clever abstractions
 
-## The tradeoff test
-
-If you can't explain what you're giving up for what you're gaining, you haven't thought through the tradeoff.
-
-Good architecture isn't about avoiding tradeoffs—it's about choosing the right ones.
-
+But it usually pays back with:
+- easier onboarding
+- fewer production surprises
+- systems that teams can reason about under pressure

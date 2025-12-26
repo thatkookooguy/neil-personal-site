@@ -2,28 +2,21 @@
 id: "02-redaction-and-trust"
 title: "Redaction and trust"
 scene:
-  mood: "focused"
+  mood: "grounded"
   characters:
-    - neil: "architect"
-    - leela: "sitting"
+    - neil: "security"
+    - leela: "lying"
   background:
-    type: "security-diagram"
+    type: "redaction-layer"
 ---
 
 # Redaction and trust
 
-Agents need access to data, but not all data should be exposed. Redaction is how you maintain privacy while enabling capability.
+Trust breaks when sensitive data leaks silently.
 
-## What redaction enables
+I design MCP layers so:
+- redaction is explicit
+- policies are testable
+- failures are visible
 
-- **Selective access**: Agents see what they need, not everything
-- **Privacy preservation**: Sensitive data stays protected
-- **Audit trails**: Clear records of what agents accessed
-- **Compliance**: Meet regulatory requirements without blocking agents
-
-## The trust test
-
-If you can't explain what data an agent can access and why, you don't have proper boundaries.
-
-Redaction isn't about hiding things—it's about giving agents the right level of access.
-
+Security should be structural, not procedural.

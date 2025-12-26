@@ -4,26 +4,19 @@ title: "Observability for humans"
 scene:
   mood: "focused"
   characters:
-    - neil: "architect"
-    - leela: "sitting"
+    - neil: "explainer"
+    - leela: "wandering"
   background:
-    type: "observability-dashboard"
+    type: "logs-to-insight"
 ---
 
 # Observability for humans
 
-Observability isn't just metrics and logs—it's making the system's behavior understandable to the people who need to reason about it.
+Observability only works if humans can interpret it.
 
-## What observability means here
+That means:
+- logs that explain intent
+- metrics tied to behavior
+- traces that follow real workflows
 
-- **State visibility**: What's the system doing right now?
-- **Change visibility**: What changed and when?
-- **Decision visibility**: Why did the system make this choice?
-- **Failure visibility**: What broke and what's the impact?
-
-## The human test
-
-If a developer needs to SSH into a server or read raw logs to understand what happened, the observability layer isn't doing its job.
-
-Good observability answers questions before they're asked.
-
+Dashboards that look impressive but don't answer questions are just noise.

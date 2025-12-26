@@ -1,29 +1,20 @@
 ---
 id: "02-reliability"
-title: "Reliability without complexity"
+title: "Reliability over cleverness"
 scene:
-  mood: "steady"
+  mood: "calm"
   characters:
-    - neil: "builder"
-    - leela: "sitting"
+    - neil: "architect"
+    - leela: "lying"
   background:
-    type: "reliability-diagram"
+    type: "uptime-paths"
 ---
 
-# Reliability without complexity
+# Reliability over cleverness
 
-Self-hosted systems need to be reliable, but reliability doesn't require complex orchestration.
+Reliable systems are often simpler than they look.
 
-## What reliable self-hosting means
-
-- **Automated backups**: Data is backed up without manual intervention
-- **Health checks**: Systems monitor themselves and alert on problems
-- **Simple recovery**: Restoring from backup should be straightforward
-- **Documentation**: Runbooks for common failure scenarios
-
-## The reliability test
-
-If you can't recover from a complete failure in under an hour, your reliability setup isn't complete.
-
-Reliability is about preparation, not perfection.
-
+I bias toward:
+- fewer moving parts
+- clear restart paths
+- boring solutions that work at 3am

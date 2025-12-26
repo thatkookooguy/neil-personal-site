@@ -1,29 +1,22 @@
 ---
 id: "03-security"
-title: "Security as a default"
+title: "Security as design"
 scene:
-  mood: "steady"
+  mood: "focused"
   characters:
-    - neil: "architect"
-    - leela: "wandering"
+    - neil: "security"
+    - leela: "sitting"
   background:
-    type: "security-diagram"
+    type: "security-layers"
 ---
 
-# Security as a default
+# Security as design
 
-Self-hosted systems need security by default, not as an afterthought.
+Security works best when it's embedded in the system.
 
-## What secure self-hosting means
+That means:
+- least privilege by default
+- clear boundaries
+- visible access paths
 
-- **Least privilege**: Services only have access to what they need
-- **Regular updates**: Security patches are applied promptly
-- **Network isolation**: Services are segmented and firewalled
-- **Access control**: Authentication and authorization are enforced
-
-## The security test
-
-If you can't explain who has access to what and why, your security model isn't clear enough.
-
-Security isn't a feature—it's a property of how the system is designed.
-
+Policies without structure don't hold.

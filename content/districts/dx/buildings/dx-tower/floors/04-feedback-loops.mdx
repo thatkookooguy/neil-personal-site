@@ -1,32 +1,22 @@
 ---
 id: "04-feedback-loops"
-title: "Tight feedback loops"
+title: "Feedback loops"
 scene:
-  mood: "bright-calm"
+  mood: "focused"
   characters:
-    - neil: "builder"
-    - leela: "wandering"
+    - neil: "observer"
+    - leela: "sitting"
   background:
-    type: "feedback-cycle"
+    type: "feedback-loop"
 ---
 
-# Tight feedback loops
+# Feedback loops
 
-The faster developers can see the impact of their changes, the faster they can iterate and learn.
+Fast feedback changes behavior.
 
-## What makes a good feedback loop
+I design systems so developers get:
+- early signals when something breaks
+- fast confirmation when something works
+- clear ownership when something fails
 
-- **Immediate**: Tests run in seconds, not minutes
-- **Actionable**: Failures point to the problem, not just "something broke"
-- **Visible**: Status is obvious without hunting through logs
-- **Reversible**: Mistakes are easy to undo
-
-## The cost of slow feedback
-
-When feedback takes minutes or hours, developers:
-- Context-switch away while waiting
-- Batch changes together (making debugging harder)
-- Lose confidence in their changes
-
-Fast feedback isn't just convenient—it changes how developers work.
-
+Feedback isn't just metrics — it's confidence.

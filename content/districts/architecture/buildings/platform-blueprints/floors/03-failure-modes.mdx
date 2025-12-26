@@ -1,29 +1,22 @@
 ---
 id: "03-failure-modes"
-title: "Designing for failure"
+title: "Designing failure modes"
 scene:
-  mood: "grounded"
+  mood: "calm"
   characters:
-    - neil: "architect"
-    - leela: "wandering"
+    - neil: "mentor"
+    - leela: "lying"
   background:
-    type: "failure-diagram"
+    type: "failure-paths"
 ---
 
-# Designing for failure
+# Designing failure modes
 
-Systems fail. Good systems fail gracefully and make it easy to understand what went wrong.
+Every system fails. The question is whether it fails *loudly and explainably*.
 
-## What failure-aware design means
+I design failure modes so that:
+- errors point to ownership
+- logs tell a story
+- humans can intervene with confidence
 
-- **Fail fast**: Detect problems early, before they cascade
-- **Fail clearly**: Errors explain what happened and what to do
-- **Fail safely**: Failures don't corrupt data or leave systems in bad states
-- **Fail observably**: Failures are logged and traceable
-
-## The failure test
-
-If a failure requires reading source code to understand, the system isn't failing clearly enough.
-
-Failure modes are part of the interface. Design them as carefully as success paths.
-
+Silent failure is the worst kind.
