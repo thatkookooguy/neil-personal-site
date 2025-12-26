@@ -1,5 +1,7 @@
 ---
 import '@/styles/global.css';
+import '@/components/ui/ThemeToggle.css';
+import ThemeToggle from '@/components/ui/ThemeToggle';
 
 interface Props {
   title: string;
@@ -18,6 +20,19 @@ const { title, description = "Neil's City - A portfolio of work across AI, Archi
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="generator" content={Astro.generator} />
     
+    <!-- Prevent flash of wrong theme -->
+    <script is:inline>
+      (function() {
+        const stored = localStorage.getItem('theme');
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        const theme = stored === 'dark' || stored === 'light' 
+          ? stored 
+          : (prefersDark ? 'dark' : 'light');
+        document.documentElement.setAttribute('data-theme', theme);
+        document.documentElement.classList.add(theme);
+      })();
+    </script>
+    
     <!-- Preload fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -29,10 +44,84 @@ const { title, description = "Neil's City - A portfolio of work across AI, Archi
     <title>{title} | Neil's City</title>
   </head>
   <body>
-    <slot />
+    <header class="site-header">
+      <a href="/" class="site-logo">
+        <span class="logo-icon">🏙️</span>
+        <span class="logo-text">Neil's City</span>
+      </a>
+      <nav class="site-nav">
+        <ThemeToggle client:load />
+      </nav>
+    </header>
+    
+    <main>
+      <slot />
+    </main>
+    
+    <footer class="site-footer">
+      <p>© {new Date().getFullYear()} Neil Kalman</p>
+    </footer>
   </body>
 </html>
 
 <style is:global>
-  /* Additional global styles that need access to Astro scoping */
+  /* Site Header */
+  .site-header {
+    position: sticky;
+    top: 0;
+    z-index: var(--z-sticky);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-3) var(--container-padding);
+    background: var(--bg-default);
+    border-bottom: 1px solid var(--border-subtle);
+    backdrop-filter: blur(8px);
+    background: color-mix(in srgb, var(--bg-default) 85%, transparent);
+  }
+  
+  .site-logo {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    text-decoration: none;
+    color: var(--text-primary);
+    font-weight: var(--font-semibold);
+    font-size: var(--text-lg);
+  }
+  
+  .site-logo:hover {
+    color: var(--brand-primary);
+  }
+  
+  .logo-icon {
+    font-size: var(--text-xl);
+  }
+  
+  .site-nav {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+  }
+  
+  /* Site Footer */
+  .site-footer {
+    padding: var(--space-8) var(--container-padding);
+    text-align: center;
+    color: var(--text-muted);
+    font-size: var(--text-sm);
+    border-top: 1px solid var(--border-subtle);
+    margin-top: auto;
+  }
+  
+  /* Ensure body is full height for footer positioning */
+  body {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  main {
+    flex: 1;
+  }
 </style>
