@@ -1,0 +1,61 @@
+{
+  "workbench.colorCustomizations": {
+    "activityBar.activeBackground": "#e29dbb",
+    "activityBar.background": "#e29dbb",
+    "activityBar.foreground": "#15202b",
+    "activityBar.inactiveForeground": "#15202b99",
+    "activityBarBadge.background": "#4a7b24",
+    "activityBarBadge.foreground": "#e7e7e7",
+    "commandCenter.border": "#15202b99",
+    "sash.hoverBorder": "#e29dbb",
+    "statusBar.background": "#d775a0",
+    "statusBar.foreground": "#15202b",
+    "statusBarItem.hoverBackground": "#cc4d85",
+    "statusBarItem.remoteBackground": "#d775a0",
+    "statusBarItem.remoteForeground": "#15202b",
+    "titleBar.activeBackground": "#d775a0",
+    "titleBar.activeForeground": "#15202b",
+    "titleBar.inactiveBackground": "#d775a099",
+    "titleBar.inactiveForeground": "#15202b99"
+  },
+  "peacock.color": "#d775a0",
+  "jest.useJest30": true,
+  "jest.virtualFolders": [
+    {
+      "name": "unit-tests",
+      "rootPath": "src"
+    },
+    {
+      "name": "e2e-tests",
+      "jestCommandLine": "npm run test:e2e -- --runInBand",
+      "rootPath": "test"
+    }
+  ],
+  "jest.runMode": {
+    "type": "on-save",
+    "coverage": false,
+    "runAllTestsOnStartup": true
+  },
+  "testing.automaticallyOpenTestResults": "neverOpen",
+  "eslint.enable": true,
+  "eslint.run": "onSave",
+  "eslint.format.enable": true,
+  "eslint.format.options": {
+    "fix": true
+  },
+  "workbench.editorAssociations": {
+    "*.md": "vscode.markdown.preview.editor"
+  },
+  "gsSquad.avatarSet": "dicebear",
+  "gsSquad.dicebearStyle": "thumbs",
+  "cSpell.words": [
+    "growthspace",
+    "kibibit"
+  ],
+  "gitlens.codeLens.enabled": false,
+  "gitlens.currentLine.enabled": false,
+  "gitlens.hovers.enabled": false,
+  // UI Setting:
+  // TypeScript (Native Preview) > Use Tsgo
+  "typescript.experimental.useTsgo": true
+}
