@@ -1,0 +1,53 @@
+{
+  "$ref": "#/definitions/floors",
+  "definitions": {
+    "floors": {
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string"
+        },
+        "order": {
+          "type": "number"
+        },
+        "summary": {
+          "type": "string"
+        },
+        "publishedDate": {
+          "type": "string"
+        },
+        "updatedDate": {
+          "type": "string"
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": []
+        },
+        "relatedFloors": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": []
+        },
+        "draft": {
+          "type": "boolean",
+          "default": false
+        },
+        "$schema": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "title",
+        "order",
+        "summary"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "$schema": "http://json-schema.org/draft-07/schema#"
+}
