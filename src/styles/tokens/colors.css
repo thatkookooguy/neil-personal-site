@@ -110,6 +110,22 @@
   --selection-bg: var(--color-teal-100);
   
   /* ========================================
+     DAY MODE — SKY & ENVIRONMENT
+     ======================================== */
+  
+  /* --- Sky Gradient (Daytime) --- */
+  --sky-top: #87CEEB;           /* Clear sky blue at zenith */
+  --sky-horizon: #FDF6E3;       /* Warm cream at horizon */
+  
+  /* --- Clouds & Atmosphere --- */
+  --cloud-color: #FFFFFF;       /* Ghibli-style soft white clouds */
+  --cloud-shadow: #E8E4DC;      /* Subtle warm shadow */
+  
+  /* --- Sun & Golden Hour --- */
+  --sun-glow: #FFE4B5;          /* Soft golden light on surfaces */
+  --sun-highlight: #FFF8DC;     /* Brightest reflection points */
+  
+  /* ========================================
      DISTRICT THEMES
      ======================================== */
   
@@ -155,6 +171,25 @@
 
 [data-theme="dark"],
 .dark {
+  /* ========================================
+     NIGHT MODE — SKY & ENVIRONMENT
+     ======================================== */
+  
+  /* --- Sky Gradient (Nighttime) --- */
+  --sky-top: #1A1A2E;           /* Deep purple-blue at zenith */
+  --sky-horizon: #2D2A3A;       /* Warm purple-brown from city glow */
+  
+  /* --- Stars --- */
+  --star-color: #FFFAF0;        /* Primary star white */
+  --star-twinkle: #F5F5DC;      /* Warm secondary stars */
+  
+  /* --- Night Lighting Effects --- */
+  --window-glow: #F5D88A;       /* Warm amber window glow */
+  --window-glow-strong: #FFD700;/* Bright windows, active shops */
+  --street-lamp: #FFF8DC;       /* Street lamp warm white */
+  --train-headlight: #FFFAF0;   /* Train headlight beam */
+  --moon-glow: #E8F0FF;         /* Soft blue-white moon (if shown) */
+  
   /* --- Backgrounds --- */
   --bg-default: #1A1512;
   --bg-subtle: #261D18;

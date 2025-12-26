@@ -6,6 +6,100 @@
 
 ---
 
+## Day/Night City Colors
+
+The light/dark mode toggle represents **Daytime** and **Nighttime** in Neil's City. This maintains the Ghibli warmth — nighttime should feel **cozy and inviting**, not cold and sterile.
+
+### Daytime (Light Mode)
+
+The city exists in perpetual golden hour — warm, clear, and inviting.
+
+```json
+{
+  "daytime_environment": {
+    "sky": {
+      "gradient_top": { "name": "Clear Sky Blue", "hex": "#87CEEB", "description": "Soft, warm blue at zenith" },
+      "gradient_horizon": { "name": "Horizon Cream", "hex": "#FDF6E3", "description": "Warm cream blending into buildings" }
+    },
+    "clouds": {
+      "base": { "name": "Ghibli Cloud White", "hex": "#FFFFFF", "description": "Soft cumulus clouds" },
+      "shadow": { "hex": "#E8E4DC", "description": "Subtle warm shadow on cloud undersides" }
+    },
+    "sun": {
+      "glow": { "name": "Afternoon Gold", "hex": "#FFE4B5", "description": "Soft golden light cast on buildings" },
+      "highlight": { "hex": "#FFF8DC", "description": "Brightest sun reflection points" }
+    },
+    "atmosphere": {
+      "ambient": "Warm, clear, golden hour lighting",
+      "mood": "Welcoming, optimistic, adventurous"
+    }
+  }
+}
+```
+
+### Nighttime (Dark Mode)
+
+Inspired by Ghibli's magical night scenes — glowing windows, warm street lamps, and a sense of cozy mystery.
+
+```json
+{
+  "nighttime_environment": {
+    "sky": {
+      "gradient_top": { "name": "Deep Night Blue", "hex": "#1A1A2E", "description": "Deep purple-blue at zenith" },
+      "gradient_horizon": { "name": "Warm Night Horizon", "hex": "#2D2A3A", "description": "Purple-brown glow from city lights" }
+    },
+    "stars": {
+      "primary": { "name": "Star White", "hex": "#FFFAF0", "description": "Main star color" },
+      "secondary": { "name": "Star Yellow", "hex": "#F5F5DC", "description": "Warm tinted stars for variety" },
+      "effect": "Subtle twinkle animation (opacity pulse)"
+    },
+    "window_glow": {
+      "standard": { "name": "Window Amber", "hex": "#F5D88A", "description": "Warm amber glow from inhabited buildings" },
+      "bright": { "name": "Window Gold", "hex": "#FFD700", "description": "Brighter windows, shops, active spaces" }
+    },
+    "lighting": {
+      "street_lamp": { "name": "Lamp Warm White", "hex": "#FFF8DC", "description": "Street lamps cast warm pools" },
+      "train_headlight": { "name": "Headlight Warm", "hex": "#FFFAF0", "description": "Train headlight beam" },
+      "moon_glow": { "name": "Moon Blue-White", "hex": "#E8F0FF", "description": "Soft blue-white if moon is shown" }
+    },
+    "atmosphere": {
+      "ambient": "Cozy, warm despite darkness, magical stillness",
+      "mood": "Peaceful, intimate, slightly mysterious"
+    }
+  }
+}
+```
+
+### Day/Night Transition Guidelines
+
+| Element | Daytime | Nighttime | Notes |
+|---------|---------|-----------|-------|
+| Sky Top | `#87CEEB` (light blue) | `#1A1A2E` (deep purple-blue) | Gradual gradient |
+| Sky Horizon | `#FDF6E3` (cream) | `#2D2A3A` (warm purple-brown) | Reflects city glow |
+| Building Windows | Natural light reflection | `#F5D88A` amber glow | Key night feature |
+| Shadows | Warm brown tones | Deep warm purples | Never pure black |
+| Accent Colors | Full saturation | Slightly muted, glow effects | Maintain warmth |
+
+### Night Mode Special Effects
+
+```css
+/* Window glow effect for night mode */
+.building-window {
+  /* Daytime: simple window */
+  background: rgba(255, 255, 255, 0.3);
+}
+
+[data-theme="dark"] .building-window {
+  /* Nighttime: warm inviting glow */
+  background: #F5D88A;
+  box-shadow: 
+    0 0 8px rgba(245, 216, 138, 0.6),
+    0 0 16px rgba(245, 216, 138, 0.3);
+}
+```
+
+---
+
 ## 1. Color Philosophy
 
 ### Guiding Principles

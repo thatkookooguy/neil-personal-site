@@ -1003,6 +1003,344 @@ trainObserver.observe(document.querySelector('.train'));
 
 ---
 
+## Night Mode Train Lighting
+
+### Overview
+
+When the site transitions to dark mode (night), the train transforms from a daytime vehicle to a beacon of warmth traversing the nighttime city. This section defines all lighting effects that activate in night mode.
+
+### Night Mode Visual Reference
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│                    TRAIN NIGHT MODE REFERENCE                        │
+├─────────────────────────────────────────────────────────────────────┤
+│                                                                      │
+│  DAYTIME (Light Mode):                                              │
+│                    ╭───────────────────────────╮                    │
+│                   ╱  ░░░  ░░░  ░░░  ░░░  ░░░  ╲  ← Windows (dim)   │
+│      ☁️ ← Steam  │══════════════════════════════│                   │
+│                  │  🚂  N E I L ' S   C I T Y  │                    │
+│                  │══════════════════════════════│                   │
+│                  └──○────────○────────○────────○┘                   │
+│                     ═════════════════════════════                   │
+│                                                                      │
+│  NIGHTTIME (Dark Mode):                                             │
+│                                                                      │
+│         Headlight beam        Cabin glow                            │
+│              ╲                    ↓                                  │
+│       ▒▒▒▒▒▒▒╲╭───────────────────────────╮                        │
+│      ▒▒▒▒▒▒▒▒╱  ▓▓▓  ▓▓▓  ▓▓▓  ▓▓▓  ▓▓▓  ╲  ← Windows (glowing)   │
+│       ▒▒▒▒▒╱ │══════════════════════════════│                       │
+│        ▒▒╱   │  🚂  N E I L ' S   C I T Y  │                        │
+│              │══════════════════════════════│                       │
+│              └──○────────○────────○────────○┘                       │
+│                 ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓  ← Track illumination  │
+│                                                                      │
+│  LIGHTING ELEMENTS:                                                 │
+│  1. Headlights (front cone of light)                                │
+│  2. Cabin interior glow (warm amber windows)                        │
+│  3. Track illumination (soft glow beneath/ahead)                    │
+│                                                                      │
+└─────────────────────────────────────────────────────────────────────┘
+```
+
+### Headlights
+
+The train headlights create a warm, inviting cone of light that illuminates the track ahead.
+
+**Properties:**
+- **Color**: Warm white (`#FFF8E0`)
+- **Shape**: Cone/ellipse extending 60-100px ahead of train
+- **Falloff**: Soft gradient from bright center to transparent edges
+- **Animation**: Subtle pulse (3s cycle, 0.9 → 1.0 opacity)
+
+```css
+/* Headlight container */
+.train-headlights {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 60px;
+  height: 40px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--duration-moderate) var(--ease-gentle);
+}
+
+/* Position based on train direction */
+.train[data-direction="left"] .train-headlights {
+  left: -40px;
+}
+
+.train[data-direction="right"] .train-headlights {
+  right: -40px;
+  transform: translateY(-50%) scaleX(-1);
+}
+
+/* Night mode activation */
+[data-theme="dark"] .train-headlights {
+  opacity: 1;
+  animation: headlightPulse 3s var(--ease-gentle) infinite;
+}
+
+/* Primary headlight glow */
+.train-headlights::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    ellipse 100% 80% at 100% 50%,
+    rgba(255, 248, 224, 0.8) 0%,
+    rgba(255, 248, 224, 0.4) 30%,
+    rgba(255, 248, 224, 0.1) 60%,
+    transparent 100%
+  );
+}
+
+/* Extended light beam */
+.train-headlights::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 150px;
+  height: 60px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 248, 224, 0.15) 50%,
+    rgba(255, 248, 224, 0.05) 100%
+  );
+  clip-path: polygon(100% 30%, 0% 0%, 0% 100%, 100% 70%);
+}
+
+/* Left-facing beam */
+.train[data-direction="left"] .train-headlights::after {
+  left: -100px;
+}
+
+/* Right-facing beam */
+.train[data-direction="right"] .train-headlights::after {
+  right: -100px;
+}
+
+@keyframes headlightPulse {
+  0%, 100% { opacity: 0.9; }
+  50% { opacity: 1; }
+}
+```
+
+### Cabin Interior Glow
+
+Train windows emit a warm, inviting glow that suggests passengers and activity inside—like the warm lights of the Spirited Away bathhouse.
+
+**Properties:**
+- **Color**: Warm amber (`#F5D88A`)
+- **Glow**: Box-shadow with soft spread (8-12px)
+- **Animation**: Gentle breathing pulse (4s cycle)
+- **Inner highlight**: Subtle white inner glow for depth
+
+```css
+/* Window base (shared between modes) */
+.train-windows {
+  transition: 
+    filter var(--duration-moderate) var(--ease-gentle),
+    box-shadow var(--duration-moderate) var(--ease-gentle);
+}
+
+/* Day mode windows */
+[data-theme="light"] .train-windows {
+  background: rgba(135, 206, 235, 0.3);
+  filter: brightness(1);
+}
+
+/* Night mode windows - warm glow */
+[data-theme="dark"] .train-windows {
+  background: #F5D88A;
+  filter: brightness(1.4);
+  box-shadow: 
+    0 0 8px 2px rgba(245, 216, 138, 0.5),
+    0 0 16px 4px rgba(245, 216, 138, 0.3),
+    inset 0 0 6px rgba(255, 220, 150, 0.4);
+  animation: cabinGlow 4s var(--ease-gentle) infinite;
+}
+
+@keyframes cabinGlow {
+  0%, 100% {
+    box-shadow: 
+      0 0 8px 2px rgba(245, 216, 138, 0.5),
+      0 0 16px 4px rgba(245, 216, 138, 0.3),
+      inset 0 0 6px rgba(255, 220, 150, 0.4);
+  }
+  50% {
+    box-shadow: 
+      0 0 12px 4px rgba(245, 216, 138, 0.6),
+      0 0 20px 6px rgba(245, 216, 138, 0.35),
+      inset 0 0 8px rgba(255, 220, 150, 0.5);
+  }
+}
+```
+
+### Track Illumination
+
+A soft glow appears on the tracks beneath and ahead of the train, reflecting the headlight's warm color.
+
+**Properties:**
+- **Color**: Matches headlight (`#FFF8E0` at low opacity)
+- **Position**: Beneath train body, extending in direction of travel
+- **Effect**: Soft blur (4px) for natural light spread
+- **Intensity**: Stronger beneath train, fading ahead
+
+```css
+/* Track glow element */
+.train-track-glow {
+  position: absolute;
+  bottom: -4px;
+  height: 12px;
+  opacity: 0;
+  filter: blur(4px);
+  pointer-events: none;
+  transition: opacity var(--duration-moderate) var(--ease-gentle);
+}
+
+/* Left-facing train */
+.train[data-direction="left"] .train-track-glow {
+  left: -60px;
+  right: -20px;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 248, 224, 0.05) 0%,
+    rgba(255, 248, 224, 0.2) 30%,
+    rgba(255, 248, 224, 0.3) 70%,
+    rgba(255, 248, 224, 0.1) 100%
+  );
+}
+
+/* Right-facing train */
+.train[data-direction="right"] .train-track-glow {
+  left: -20px;
+  right: -60px;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 248, 224, 0.1) 0%,
+    rgba(255, 248, 224, 0.3) 30%,
+    rgba(255, 248, 224, 0.2) 70%,
+    rgba(255, 248, 224, 0.05) 100%
+  );
+}
+
+/* Night mode activation */
+[data-theme="dark"] .train-track-glow {
+  opacity: 1;
+}
+```
+
+### Night Mode While Traveling
+
+When the train is in motion during night mode, the lighting effects must coordinate with movement.
+
+```css
+/* Traveling at night - enhanced effects */
+[data-theme="dark"] .train-traveling .train-headlights {
+  /* Slightly brighter during travel */
+  opacity: 1;
+}
+
+[data-theme="dark"] .train-traveling .train-track-glow {
+  /* Track glow extends further during travel */
+  opacity: 1;
+}
+
+/* Headlight beam animation during travel */
+[data-theme="dark"] .train-traveling .train-headlights::after {
+  animation: beamSweep 2s var(--ease-gentle) infinite;
+}
+
+@keyframes beamSweep {
+  0%, 100% {
+    opacity: 0.8;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+```
+
+### Night Mode State Summary
+
+| State | Headlights | Cabin Glow | Track Glow | Notes |
+|-------|------------|------------|------------|-------|
+| **Day - Idle** | Off | Dim windows | None | Standard daytime appearance |
+| **Day - Traveling** | Off | Dim windows | None | Standard daytime travel |
+| **Night - Idle** | On (pulse) | Warm glow (breathe) | Soft glow | Cozy station waiting |
+| **Night - Traveling** | On (bright) | Warm glow (steady) | Extended | Illuminates track ahead |
+| **Night - Departing** | On + flash | Warm glow | Expands | Dramatic departure |
+| **Night - Arriving** | On | Warm glow | Contracts | Settling into station |
+
+### Night Steam Particles
+
+Steam particles at night should be lit by the warm cabin glow:
+
+```css
+/* Night steam - warm lit appearance */
+[data-theme="dark"] .steam-puff {
+  background: rgba(255, 248, 224, 0.7);
+  box-shadow: 0 0 4px rgba(255, 248, 224, 0.4);
+}
+
+@keyframes steam-rise-night {
+  0% {
+    opacity: 0.7;
+    transform: translateY(0) translateX(0) scale(0.5);
+    filter: brightness(1.2);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-30px) translateX(var(--drift-x, 5px)) scale(1.2);
+    filter: brightness(1);
+  }
+}
+
+[data-theme="dark"] .steam-puff {
+  animation: steam-rise-night 1500ms var(--ease-gentle) forwards;
+}
+```
+
+### Reduced Motion Night Mode
+
+```css
+@media (prefers-reduced-motion: reduce) {
+  /* Static night lighting */
+  [data-theme="dark"] .train-headlights {
+    opacity: 1;
+    animation: none;
+  }
+  
+  [data-theme="dark"] .train-windows {
+    animation: none;
+    box-shadow: 
+      0 0 8px 2px rgba(245, 216, 138, 0.5),
+      0 0 16px 4px rgba(245, 216, 138, 0.3);
+  }
+  
+  [data-theme="dark"] .train-track-glow {
+    opacity: 1;
+  }
+}
+```
+
+### Integration with Day/Night Transitions
+
+See [day-night-transitions.md](./day-night-transitions.md) for full details on how train lighting coordinates with the overall theme transition sequence.
+
+**Timing in transition sequence:**
+- Train lights activate at t=400ms (after windows illuminate)
+- Duration: 300ms fade-in
+- Easing: `--ease-gentle`
+
+---
+
 ## Integration Notes
 
 ### For Frontend Developer
@@ -1010,18 +1348,25 @@ trainObserver.observe(document.querySelector('.train'));
 - Use JavaScript for journey calculation and state management
 - Implement intersection observer for performance
 - Handle interruption gracefully (cancel current animation, start new)
+- Coordinate train night lighting with theme transition orchestrator
+- Use `data-theme` attribute to toggle night mode styles
+- Ensure headlight direction updates with train direction
 
 ### For Visual Designer
-- Create sprite sheets for train variants
+- Create sprite sheets for train variants (day and night versions)
 - Design station markers for each district
-- Create steam particle sprites
+- Create steam particle sprites (day and night variants)
 - Provide window lighting variations
+- Design headlight beam sprite/gradient
+- Create warm glow effect references
 
 ### For Sound Designer (Future)
 - Keep sounds short and ambient
 - Provide multiple format options (mp3, ogg)
 - Create loopable chugging rhythm
 - Match audio tone to Ghibli warmth
+- Consider softer, more atmospheric sounds for night mode
+- Train whistle could be slightly mellower at night
 
 ### For QA Specialist
 - Test all state transitions
@@ -1029,7 +1374,10 @@ trainObserver.observe(document.querySelector('.train'));
 - Test interruption scenarios
 - Verify reduced motion mode
 - Test on low-end devices
+- **Test night mode lighting in all train states**
+- **Verify headlight direction follows train direction**
+- **Test theme transition while train is in motion**
 
 ---
 
-*Train animation designed for Neil's City Site. The train brings life and continuity to navigation, making exploration feel like a journey.*
+*Train animation designed for Neil's City Site. The train brings life and continuity to navigation, making exploration feel like a journey—and at night, it becomes a warm beacon traversing the sleeping city.*

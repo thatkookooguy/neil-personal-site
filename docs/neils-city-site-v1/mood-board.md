@@ -54,6 +54,7 @@ This isn't about recreating Ghibli or copying pixel art. It's about capturing **
 - The approach to the bathhouse at dusk
 - The boiler room with Kamaji (industrial warmth)
 - The train over water (peaceful, contemplative movement)
+- **The bathhouse at night** — thousands of glowing windows against the dark sky, lanterns creating warm pools of light, the magical contrast of warm interiors against cool night air
 
 ---
 
@@ -70,6 +71,7 @@ This isn't about recreating Ghibli or copying pixel art. It's about capturing **
 - The bakery interior and exterior
 - Aerial views of the coastal town
 - The clock tower and surrounding plaza
+- **The town at dusk/evening** — warm amber lights beginning to glow in windows, the transition from day to night captured beautifully, streets becoming intimate and cozy
 
 ---
 
@@ -92,6 +94,67 @@ This isn't about recreating Ghibli or copying pixel art. It's about capturing **
 | **The Wind Rises** | Technical precision with emotional warmth, blueprint aesthetics |
 | **Whisper of the Heart** | Cozy interiors, creative workspaces, urban warmth |
 | **From Up on Poppy Hill** | 1960s palette (teals, oranges), student clubhouse energy |
+
+---
+
+### Night Scene References (Critical for Dark Mode)
+
+The key to Neil's City night mode is capturing Ghibli's **warm nighttime magic** — nights that feel cozy and inviting, never cold or threatening.
+
+#### **Spirited Away — Bathhouse at Night**
+The quintessential reference for warm urban night scenes.
+
+**Take from this:**
+- **Thousands of glowing windows** — warm amber/gold light spilling outward
+- **Lantern light** — creates pools of warmth in the darkness
+- **Steam and atmosphere** — adds depth and mystery
+- **The contrast** — warm interiors against cool blue-purple night sky
+- **Activity suggested** — silhouettes, movement behind windows
+
+**Specific elements:**
+- Window glow color: warm amber (#F5D88A range)
+- Sky gradient: deep purple-blue to warm brown horizon
+- Light sources create visible pools/halos
+- Buildings feel alive and inhabited
+
+---
+
+#### **Howl's Moving Castle — Interior Glow**
+How warm interior light looks from outside at night.
+
+**Take from this:**
+- **Fireplace glow** — that magical warm orange radiating outward
+- **Candle flicker** — soft, living light
+- **Window as beacon** — a single lit window as focal point
+- **Warm wood tones** — how materials look under warm artificial light
+
+---
+
+#### **Kiki's Delivery Service — Town at Dusk**
+The beautiful transition from day to night.
+
+**Take from this:**
+- **The in-between moment** — when sky is purple but buildings still catch last light
+- **First lights appearing** — scattered windows beginning to glow
+- **Street lamps igniting** — creating paths of light
+- **Silhouette buildings** — distant structures become dark shapes against the sky
+
+**Key learning:** Night doesn't arrive all at once — it's a beautiful gradient.
+
+---
+
+### Night Mood Summary
+
+| Element | Color/Treatment | Emotional Goal |
+|---------|-----------------|----------------|
+| Sky | Deep purple-blue (#1A1A2E) to warm horizon (#2D2A3A) | Cozy, not threatening |
+| Stars | Warm white (#FFFAF0), subtle twinkle | Magical, not cold |
+| Windows | Amber glow (#F5D88A) | Life, warmth, invitation |
+| Street lamps | Warm white (#FFF8DC) | Safety, guidance |
+| Shadows | Deep warm purples/browns | Soft, never pure black |
+| Train | Warm headlight beam, lit windows | Moving warmth through night |
+
+**Remember:** Ghibli nights are **cozy**, not **spooky**. Every light source should feel like an invitation, not illumination against danger.
 
 ---
 
