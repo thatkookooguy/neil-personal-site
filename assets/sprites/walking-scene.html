@@ -241,8 +241,12 @@
     }
 
     .sprite-leela {
-      background-image: url('./leela-walk-spritesheet.png');
       background-repeat: no-repeat;
+      transition: opacity 0.15s ease-out;
+    }
+    
+    .sprite-leela.transitioning {
+      opacity: 0.7;
     }
 
     /* Leela's shadow is smaller */
@@ -368,11 +372,33 @@
           cols: 6,
           rows: 6,
           totalFrames: 36,
-          frameWidth: 287,
-          frameHeight: 269,
-          sheetWidth: 1722,
-          sheetHeight: 1614,
+          frameWidth: 293,
+          frameHeight: 267,
+          sheetWidth: 1758,
+          sheetHeight: 1602,
           fps: 23
+        },
+        idle: {
+          src: './leela-idle-spritesheet.png',
+          cols: 6,
+          rows: 6,
+          totalFrames: 36,
+          frameWidth: 247,
+          frameHeight: 260,
+          sheetWidth: 1482,
+          sheetHeight: 1560,
+          fps: 12
+        },
+        scratch: {
+          src: './leela-scratch-spritesheet.png',
+          cols: 6,
+          rows: 6,
+          totalFrames: 36,
+          frameWidth: 299,
+          frameHeight: 289,
+          sheetWidth: 1794,
+          sheetHeight: 1734,
+          fps: 12
         }
       }
     };
@@ -416,6 +442,37 @@
         }
       },
       transitionDuration: 150  // ms for state transition fade
+    };
+
+    // Leela-specific configuration (separate from Neil)
+    const LEELA_CONFIG = {
+      speed: 55,
+      // State machine timing (in milliseconds)
+      minWalkTime: 4000,
+      maxWalkTime: 10000,
+      minIdleCycles: 3,
+      minIdleTime: 1000,       // Minimum 1 second idle
+      maxIdleTime: 5000,
+      scratchChance: 0.70,     // 70% chance to scratch during idle
+      minScratchCycles: 1,     // At least 1 full cycle (forward + reverse)
+      maxScratchTime: 6000,
+      postScratchIdleTime: 1000,    // 1 second minimum idle after scratch
+      // Easing transitions
+      slowDownDuration: 600,
+      speedUpDuration: 500,
+      // Animation speed multipliers
+      idleAnimSpeed: 1.4,
+      scratchAnimSpeed: 1.8,
+      // Scratch loop: frames 17-36 (indices 16-35) repeat 1-3 times
+      scratchLoopStart: 16,   // 0-based index where loop starts
+      scratchLoopEnd: 35,     // 0-based index where loop ends
+      scratchLoopMinRepeats: 4,
+      scratchLoopMaxRepeats: 10,
+      // Position offsets (separate for each direction)
+      spriteOffsets: {
+        right: { walk: 0, idle: -15, scratch: -15 },
+        left: { walk: 0, idle: 15, scratch: 15 }
+      }
     };
 
     // ============================================
@@ -787,32 +844,195 @@
     }
 
     // ============================================
-    // LEELA CHARACTER CLASS (simple, follows Neil)
+    // LEELA CHARACTER CLASS (with state machine)
     // ============================================
     class LeelaCharacter {
       constructor(stage) {
         this.name = 'leela';
-        this.config = SPRITES.leela.walk;
         this.stage = stage;
         
+        // State machine
+        // States: walking, slowing, idle, scratch, post-scratch-idle, speeding
+        this.state = 'walking';
+        this.stateStartTime = 0;
+        this.nextStateChangeTime = 0;
+        
+        // Speed multiplier for easing
+        this.speedMultiplier = 1;
+        
+        // Current sprite config
+        this.currentSprite = 'walk';
+        this.config = SPRITES.leela.walk;
+        
+        // Animation state
         this.currentFrame = 0;
         this.lastFrameTime = 0;
         this.frameInterval = 1000 / this.config.fps;
         
+        // Ping-pong animation for scratch (forward then reverse)
+        this.animDirection = 1; // 1 = forward, -1 = reverse
+        this.completedCycles = 0;
+        
+        // Scratch loop state
+        this.scratchLoopRepeats = 0;       // How many times to repeat the loop section
+        this.scratchLoopCount = 0;         // Current loop count
+        this.inScratchLoop = false;        // Currently in the loop section
+        this.scratchReadyToExit = false;   // Flag: time is up, wait for frame 0
+        
+        // Position state
         this.x = 0;
         this.direction = 1;
-        this.speed = CONFIG.leelaSpeed;
+        this.speed = LEELA_CONFIG.speed;
         
+        // Display scale
         this.displayScale = 1;
         this.referenceDisplayScale = null;
         
-        // Following behavior
-        this.isFollowing = false;
-        this.targetX = 0;
-        
+        // Create DOM element
         this.element = document.createElement('div');
         this.element.className = 'character sprite-leela';
+        this.element.style.backgroundImage = `url('${this.config.src}')`;
+        
+        // State indicator (hover to see)
+        this.stateIndicator = document.createElement('div');
+        this.stateIndicator.className = 'state-indicator';
+        this.element.appendChild(this.stateIndicator);
+        
         this.stage.appendChild(this.element);
+        
+        // Schedule first state change
+        this.scheduleNextStateChange(performance.now());
+      }
+
+      randomBetween(min, max) {
+        return min + Math.random() * (max - min);
+      }
+
+      getAnimCycleDuration(spriteName, speedMultiplier = 1) {
+        const sprite = SPRITES.leela[spriteName];
+        const baseFrameTime = 1000 / sprite.fps;
+        const effectiveFrameTime = baseFrameTime / speedMultiplier;
+        // For scratch, one cycle = forward + reverse = 2x frames
+        if (spriteName === 'scratch') {
+          return effectiveFrameTime * sprite.totalFrames * 2;
+        }
+        return effectiveFrameTime * sprite.totalFrames;
+      }
+
+      scheduleNextStateChange(currentTime) {
+        this.stateStartTime = currentTime;
+        
+        switch (this.state) {
+          case 'walking':
+            this.nextStateChangeTime = currentTime + this.randomBetween(LEELA_CONFIG.minWalkTime, LEELA_CONFIG.maxWalkTime);
+            break;
+          case 'slowing':
+            this.nextStateChangeTime = currentTime + LEELA_CONFIG.slowDownDuration;
+            break;
+          case 'idle': {
+            const cycleDuration = this.getAnimCycleDuration('idle', LEELA_CONFIG.idleAnimSpeed);
+            const minCycleTime = cycleDuration * LEELA_CONFIG.minIdleCycles;
+            const minTime = Math.max(minCycleTime, LEELA_CONFIG.minIdleTime);
+            this.nextStateChangeTime = currentTime + this.randomBetween(minTime, LEELA_CONFIG.maxIdleTime);
+            break;
+          }
+          case 'scratch': {
+            const cycleDuration = this.getAnimCycleDuration('scratch', LEELA_CONFIG.scratchAnimSpeed);
+            const minTime = cycleDuration * LEELA_CONFIG.minScratchCycles;
+            this.nextStateChangeTime = currentTime + this.randomBetween(minTime, LEELA_CONFIG.maxScratchTime);
+            this.scratchReadyToExit = false;
+            break;
+          }
+          case 'post-scratch-idle':
+            this.nextStateChangeTime = currentTime + LEELA_CONFIG.postScratchIdleTime;
+            break;
+          case 'speeding':
+            this.nextStateChangeTime = currentTime + LEELA_CONFIG.speedUpDuration;
+            break;
+        }
+      }
+
+      switchSprite(spriteName) {
+        if (this.currentSprite === spriteName) return;
+        
+        this.element.classList.add('transitioning');
+        
+        this.currentSprite = spriteName;
+        this.config = SPRITES.leela[spriteName];
+        this.currentFrame = 0;
+        this.frameInterval = 1000 / this.config.fps;
+        
+        // Reset ping-pong state
+        this.animDirection = 1;
+        this.completedCycles = 0;
+        
+        // Reset and randomize scratch loop
+        if (spriteName === 'scratch') {
+          this.scratchLoopRepeats = Math.floor(Math.random() * 
+            (LEELA_CONFIG.scratchLoopMaxRepeats - LEELA_CONFIG.scratchLoopMinRepeats + 1)) + 
+            LEELA_CONFIG.scratchLoopMinRepeats;
+          this.scratchLoopCount = 0;
+          this.inScratchLoop = false;
+        }
+        
+        this.element.style.backgroundImage = `url('${this.config.src}')`;
+        this.applyScale();
+        
+        setTimeout(() => {
+          this.element.classList.remove('transitioning');
+        }, CONFIG.transitionDuration);
+      }
+
+      transitionTo(newState, currentTime) {
+        this.state = newState;
+        this.scheduleNextStateChange(currentTime);
+        
+        switch (newState) {
+          case 'walking':
+          case 'slowing':
+          case 'speeding':
+            this.switchSprite('walk');
+            break;
+          case 'idle':
+          case 'post-scratch-idle':
+            this.switchSprite('idle');
+            break;
+          case 'scratch':
+            this.switchSprite('scratch');
+            break;
+        }
+      }
+
+      updateStateMachine(currentTime) {
+        if (currentTime < this.nextStateChangeTime) return;
+        
+        switch (this.state) {
+          case 'walking':
+            this.transitionTo('slowing', currentTime);
+            break;
+          case 'slowing':
+            this.speedMultiplier = 0;
+            this.transitionTo('idle', currentTime);
+            break;
+          case 'idle':
+            if (Math.random() < LEELA_CONFIG.scratchChance) {
+              this.transitionTo('scratch', currentTime);
+            } else {
+              this.transitionTo('speeding', currentTime);
+            }
+            break;
+          case 'scratch':
+            // Set flag - wait for animation to reach frame 0
+            this.scratchReadyToExit = true;
+            break;
+          case 'post-scratch-idle':
+            this.transitionTo('speeding', currentTime);
+            break;
+          case 'speeding':
+            this.speedMultiplier = 1;
+            this.transitionTo('walking', currentTime);
+            break;
+        }
       }
 
       setScale(scale) {
@@ -820,11 +1040,20 @@
           this.referenceDisplayScale = scale;
         }
         this.displayScale = scale;
+        this.applyScale();
+      }
+
+      applyScale() {
+        const baseScale = this.displayScale;
+        const targetHeight = SPRITES.leela.walk.frameHeight * baseScale;
+        const spriteScale = targetHeight / this.config.frameHeight;
         
-        const width = this.config.frameWidth * scale;
-        const height = this.config.frameHeight * scale;
-        const sheetW = this.config.sheetWidth * scale;
-        const sheetH = this.config.sheetHeight * scale;
+        const width = this.config.frameWidth * spriteScale;
+        const height = this.config.frameHeight * spriteScale;
+        const sheetW = this.config.sheetWidth * spriteScale;
+        const sheetH = this.config.sheetHeight * spriteScale;
+        
+        this.actualSpriteScale = spriteScale;
         
         this.element.style.width = `${width}px`;
         this.element.style.height = `${height}px`;
@@ -834,54 +1063,149 @@
       }
 
       getWidth() {
-        return this.config.frameWidth * this.displayScale;
+        return this.config.frameWidth * (this.actualSpriteScale || this.displayScale);
       }
 
-      /**
-       * Update - Leela moves independently of Neil
-       */
+      easeOutCubic(t) {
+        return 1 - Math.pow(1 - t, 3);
+      }
+
+      easeInCubic(t) {
+        return t * t * t;
+      }
+
       update(currentTime, deltaTime, stageWidth) {
-        // Update animation frame (always animate)
-        if (currentTime - this.lastFrameTime >= this.frameInterval) {
-          this.currentFrame = (this.currentFrame + 1) % this.config.totalFrames;
+        this.updateStateMachine(currentTime);
+        
+        // Update speed multiplier during easing
+        if (this.state === 'slowing') {
+          const elapsed = currentTime - this.stateStartTime;
+          const progress = Math.min(1, elapsed / LEELA_CONFIG.slowDownDuration);
+          this.speedMultiplier = 1 - this.easeOutCubic(progress);
+        } else if (this.state === 'speeding') {
+          const elapsed = currentTime - this.stateStartTime;
+          const progress = Math.min(1, elapsed / LEELA_CONFIG.speedUpDuration);
+          this.speedMultiplier = this.easeInCubic(progress);
+        }
+        
+        // Update animation frame
+        let effectiveFrameInterval = this.frameInterval;
+        
+        if (this.state === 'slowing' || this.state === 'speeding') {
+          const animSpeed = Math.max(0.05, this.speedMultiplier);
+          effectiveFrameInterval = Math.min(500, this.frameInterval / animSpeed);
+        } else if (this.state === 'idle' || this.state === 'post-scratch-idle') {
+          effectiveFrameInterval = this.frameInterval / LEELA_CONFIG.idleAnimSpeed;
+        } else if (this.state === 'scratch') {
+          effectiveFrameInterval = this.frameInterval / LEELA_CONFIG.scratchAnimSpeed;
+        }
+        
+        if (currentTime - this.lastFrameTime >= effectiveFrameInterval) {
+          if (this.state === 'scratch') {
+            // Scratch animation with looping section
+            // Forward: 0 → loopStart, then loop (loopStart → loopEnd) N times, then reverse
+            
+            if (this.animDirection === 1) {
+              // Going forward
+              this.currentFrame++;
+              
+              // Check if we've entered or completed the loop section
+              if (this.currentFrame >= LEELA_CONFIG.scratchLoopEnd) {
+                this.scratchLoopCount++;
+                
+                if (this.scratchLoopCount < this.scratchLoopRepeats) {
+                  // Loop back to start of loop section
+                  this.currentFrame = LEELA_CONFIG.scratchLoopStart;
+                } else {
+                  // Done looping, start reverse
+                  this.currentFrame = LEELA_CONFIG.scratchLoopEnd;
+                  this.animDirection = -1;
+                }
+              }
+            } else {
+              // Going backward (reverse)
+              this.currentFrame--;
+              
+              if (this.currentFrame <= 0) {
+                this.currentFrame = 0;
+                
+                // If ready to exit, transition to post-scratch-idle
+                if (this.scratchReadyToExit) {
+                  this.transitionTo('post-scratch-idle', currentTime);
+                  return; // Stop further processing
+                }
+                
+                this.animDirection = 1;
+                this.completedCycles++;
+                // Reset loop for next cycle
+                this.scratchLoopCount = 0;
+                this.scratchLoopRepeats = Math.floor(Math.random() * 
+                  (LEELA_CONFIG.scratchLoopMaxRepeats - LEELA_CONFIG.scratchLoopMinRepeats + 1)) + 
+                  LEELA_CONFIG.scratchLoopMinRepeats;
+              }
+            }
+          } else {
+            // Normal looping animation
+            this.currentFrame = (this.currentFrame + 1) % this.config.totalFrames;
+          }
           this.lastFrameTime = currentTime;
         }
         
-        // Leela always keeps moving independently
-        const scaleRatio = this.displayScale / this.referenceDisplayScale;
-        const movement = (this.speed * scaleRatio * deltaTime) / 1000;
-        this.x += movement * this.direction;
-        
-        // Boundary check
-        const charWidth = this.getWidth();
-        const minX = CONFIG.edgePadding;
-        const maxX = stageWidth - charWidth - CONFIG.edgePadding;
-        
-        if (this.x >= maxX) {
-          this.x = maxX;
-          this.direction = -1;
-        } else if (this.x <= minX) {
-          this.x = minX;
-          this.direction = 1;
+        // Move when walking, slowing, or speeding
+        if (this.state === 'walking' || this.state === 'slowing' || this.state === 'speeding') {
+          const scaleRatio = this.displayScale / this.referenceDisplayScale;
+          const movement = (this.speed * this.speedMultiplier * scaleRatio * deltaTime) / 1000;
+          this.x += movement * this.direction;
+          
+          const charWidth = this.getWidth();
+          const minX = CONFIG.edgePadding;
+          const maxX = stageWidth - charWidth - CONFIG.edgePadding;
+          
+          if (this.x >= maxX) {
+            this.x = maxX;
+            this.direction = -1;
+          } else if (this.x <= minX) {
+            this.x = minX;
+            this.direction = 1;
+          }
         }
       }
 
       render() {
         const col = this.currentFrame % this.config.cols;
         const row = Math.floor(this.currentFrame / this.config.cols);
-        const bgX = -(col * this.config.frameWidth * this.displayScale);
-        const bgY = -(row * this.config.frameHeight * this.displayScale);
+        const scale = this.actualSpriteScale || this.displayScale;
+        const bgX = -(col * this.config.frameWidth * scale);
+        const bgY = -(row * this.config.frameHeight * scale);
         
         this.element.style.backgroundPosition = `${bgX}px ${bgY}px`;
-        this.element.style.left = `${this.x}px`;
         
+        // Apply position offset
+        const dirKey = this.direction === 1 ? 'right' : 'left';
+        const baseOffset = LEELA_CONFIG.spriteOffsets[dirKey][this.currentSprite] || 0;
+        const finalOffset = baseOffset * this.displayScale;
+        
+        this.element.style.left = `${this.x + finalOffset}px`;
+        
+        // Flip based on direction
+        let isFlipped = false;
         if (this.direction === 1) {
           this.element.style.transform = 'scaleX(-1)';
+          isFlipped = true;
         } else {
           this.element.style.transform = 'scaleX(1)';
+          isFlipped = false;
         }
         
+        // Counter-flip the state indicator so text is always readable
+        this.stateIndicator.style.transform = isFlipped 
+          ? 'translateX(-50%) scaleX(-1)' 
+          : 'translateX(-50%)';
+        
         this.element.style.zIndex = 20;
+        
+        // Update state indicator
+        this.stateIndicator.textContent = this.state;
       }
     }
 
