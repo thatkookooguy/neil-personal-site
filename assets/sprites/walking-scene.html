@@ -292,6 +292,26 @@
     .character:hover .state-indicator {
       opacity: 1;
     }
+
+    /* Screensaver mode - hide UI elements */
+    body.screensaver .header,
+    body.screensaver .controls,
+    body.screensaver .keyboard-hints {
+      display: none;
+    }
+
+    body.screensaver {
+      cursor: none;
+    }
+
+    body.screensaver .scene-container {
+      height: 100%;
+    }
+
+    /* Character entrance animation */
+    .character.entering {
+      transition: none;
+    }
   </style>
 </head>
 <body>
@@ -800,6 +820,16 @@
       }
 
       /**
+       * Update animation frame only (for entrance animation)
+       */
+      updateAnimation(currentTime) {
+        if (currentTime - this.lastFrameTime >= this.frameInterval) {
+          this.currentFrame = (this.currentFrame + 1) % this.config.totalFrames;
+          this.lastFrameTime = currentTime;
+        }
+      }
+
+      /**
        * Render to DOM
        */
       render() {
@@ -1171,6 +1201,16 @@
         }
       }
 
+      /**
+       * Update animation frame only (for entrance animation)
+       */
+      updateAnimation(currentTime) {
+        if (currentTime - this.lastFrameTime >= this.frameInterval) {
+          this.currentFrame = (this.currentFrame + 1) % this.config.totalFrames;
+          this.lastFrameTime = currentTime;
+        }
+      }
+
       render() {
         const col = this.currentFrame % this.config.cols;
         const row = Math.floor(this.currentFrame / this.config.cols);
@@ -1340,9 +1380,158 @@
     }
 
     // ============================================
+    // SPRITE PRELOADER (silent, no UI)
+    // ============================================
+    function preloadAllSprites() {
+      const sources = [];
+      for (const character of Object.values(SPRITES)) {
+        for (const sprite of Object.values(character)) {
+          if (sprite.src && !sources.includes(sprite.src)) {
+            sources.push(sprite.src);
+          }
+        }
+      }
+
+      const loadPromises = sources.map(src => {
+        return new Promise((resolve) => {
+          const img = new Image();
+          img.onload = resolve;
+          img.onerror = resolve; // Continue even if one fails
+          img.src = src;
+        });
+      });
+
+      return Promise.all(loadPromises);
+    }
+
+    // ============================================
+    // EXTENDED WALKING SCENE WITH ENTRANCE
+    // ============================================
+    class WalkingSceneWithEntrance extends WalkingScene {
+      constructor() {
+        super();
+        this.entranceComplete = false;
+        this.isPaused = true; // Start paused during entrance
+      }
+
+      setInitialPositions() {
+        // Position characters off-screen for entrance
+        const stageWidth = this.stage.clientWidth || window.innerWidth;
+        
+        // Neil starts off-screen left
+        this.neil.x = -this.neil.getWidth() - 50;
+        this.neil.direction = 1;
+        
+        // Leela starts off-screen right
+        this.leela.x = stageWidth + 50;
+        this.leela.direction = -1;
+      }
+
+      startEntrance() {
+        // Unpause to allow entrance animation
+        this.isPaused = false;
+        this.entranceComplete = false;
+        
+        // Target positions
+        const stageWidth = this.stage.clientWidth || window.innerWidth;
+        this.neilTargetX = CONFIG.edgePadding;
+        this.leelaTargetX = stageWidth - this.leela.getWidth() - CONFIG.edgePadding;
+        
+        // Mark as entering
+        this.neil.element.classList.add('entering');
+        this.leela.element.classList.add('entering');
+      }
+
+      animate(currentTime) {
+        const deltaTime = this.lastTime === 0 ? 0 : currentTime - this.lastTime;
+        this.lastTime = currentTime;
+        
+        if (!this.isPaused && deltaTime > 0) {
+          const stageWidth = this.stage.clientWidth;
+          
+          if (!this.entranceComplete) {
+            // Entrance animation - just walk to target positions
+            this.animateEntrance(currentTime, deltaTime, stageWidth);
+          } else {
+            // Normal animation
+            this.neil.update(currentTime, deltaTime, stageWidth);
+            this.leela.update(currentTime, deltaTime, stageWidth);
+          }
+        }
+        
+        // Always render
+        this.neil.render();
+        this.leela.render();
+        
+        this.animationId = requestAnimationFrame((t) => this.animate(t));
+      }
+
+      animateEntrance(currentTime, deltaTime, stageWidth) {
+        // Move Neil toward target
+        const neilSpeed = (CONFIG.neilSpeed * this.neil.displayScale / this.neil.referenceDisplayScale);
+        const neilMove = (neilSpeed * deltaTime) / 1000;
+        
+        if (this.neil.x < this.neilTargetX) {
+          this.neil.x += neilMove;
+          if (this.neil.x >= this.neilTargetX) {
+            this.neil.x = this.neilTargetX;
+          }
+        }
+        
+        // Move Leela toward target
+        const leelaSpeed = (LEELA_CONFIG.speed * this.leela.displayScale / this.leela.referenceDisplayScale);
+        const leelaMove = (leelaSpeed * deltaTime) / 1000;
+        
+        if (this.leela.x > this.leelaTargetX) {
+          this.leela.x -= leelaMove;
+          if (this.leela.x <= this.leelaTargetX) {
+            this.leela.x = this.leelaTargetX;
+          }
+        }
+        
+        // Update animation frames during entrance
+        this.neil.updateAnimation(currentTime);
+        this.leela.updateAnimation(currentTime);
+        
+        // Check if entrance is complete
+        if (this.neil.x >= this.neilTargetX && this.leela.x <= this.leelaTargetX) {
+          this.entranceComplete = true;
+          this.neil.element.classList.remove('entering');
+          this.leela.element.classList.remove('entering');
+          
+          // Reset state machine timing
+          this.neil.scheduleNextStateChange(currentTime);
+          this.leela.scheduleNextStateChange(currentTime);
+        }
+      }
+    }
+
+    // ============================================
     // INITIALIZE
     // ============================================
-    const scene = new WalkingScene();
+    async function init() {
+      // Check for screensaver mode
+      const urlParams = new URLSearchParams(window.location.search);
+      const isScreensaver = urlParams.has('screensaver');
+      
+      if (isScreensaver) {
+        document.body.classList.add('screensaver');
+      }
+
+      // Preload all sprites silently, then start entrance animation
+      await preloadAllSprites();
+      
+      // Create scene and start entrance animation
+      const scene = new WalkingSceneWithEntrance();
+      scene.startEntrance();
+    }
+
+    // Start when DOM is ready
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', init);
+    } else {
+      init();
+    }
   </script>
 </body>
 </html>
