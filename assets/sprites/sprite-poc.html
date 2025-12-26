@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Neil & Leela Walking Animation POC</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+      min-height: 100vh;
+      color: #fff;
+      padding: 2rem;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 1rem;
+      font-size: 2rem;
+      background: linear-gradient(90deg, #e94560, #f39c12);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .subtitle {
+      text-align: center;
+      color: #a0a0a0;
+      margin-bottom: 2rem;
+      font-size: 0.9rem;
+    }
+
+    .controls {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 2rem;
+      margin-bottom: 2rem;
+      flex-wrap: wrap;
+      background: rgba(255, 255, 255, 0.05);
+      padding: 1.5rem;
+      border-radius: 12px;
+      backdrop-filter: blur(10px);
+    }
+
+    .control-group {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .control-group label {
+      font-weight: 500;
+      color: #e0e0e0;
+    }
+
+    button {
+      background: linear-gradient(135deg, #e94560, #c23d51);
+      color: white;
+      border: none;
+      padding: 0.75rem 1.5rem;
+      border-radius: 8px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-weight: 600;
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 15px rgba(233, 69, 96, 0.4);
+    }
+
+    button:active {
+      transform: translateY(0);
+    }
+
+    button.paused {
+      background: linear-gradient(135deg, #27ae60, #1e8449);
+    }
+
+    button.paused:hover {
+      box-shadow: 0 4px 15px rgba(39, 174, 96, 0.4);
+    }
+
+    input[type="range"] {
+      width: 150px;
+      height: 6px;
+      border-radius: 3px;
+      background: rgba(255, 255, 255, 0.2);
+      outline: none;
+      -webkit-appearance: none;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #e94560;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    input[type="range"]::-webkit-slider-thumb:hover {
+      transform: scale(1.2);
+    }
+
+    .value-display {
+      min-width: 60px;
+      text-align: center;
+      background: rgba(255, 255, 255, 0.1);
+      padding: 0.25rem 0.5rem;
+      border-radius: 4px;
+      font-family: monospace;
+    }
+
+    .sprites-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+      gap: 2rem;
+      max-width: 1600px;
+      margin: 0 auto;
+    }
+
+    .sprite-card {
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 16px;
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .sprite-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    }
+
+    .sprite-card h3 {
+      margin-bottom: 1rem;
+      font-size: 1.1rem;
+      color: #f39c12;
+    }
+
+    .sprite-wrapper {
+      border-radius: 8px;
+      background: rgba(0, 0, 0, 0.3);
+      box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      /* Wrapper will resize dynamically via JS */
+      transition: width 0.2s ease, height 0.2s ease;
+    }
+
+    /* Base sizes - will be updated by JS based on scale */
+    .sprite-wrapper.neil {
+      width: 245px;
+      height: 402px;
+    }
+
+    .sprite-wrapper.leela {
+      width: 431px;
+      height: 404px;
+    }
+
+    /* 
+     * CORRECT SPRITE DIMENSIONS:
+     * 
+     * Neil: neil-walk-spritesheet.png
+     *   - Total: 978 × 1608 px
+     *   - Grid: 6 columns × 6 rows = 36 frames
+     *   - Frame: 163 × 268 px
+     *
+     * Leela: leela-walk-spritesheet.png
+     *   - Total: 1722 × 1614 px
+     *   - Grid: 6 columns × 6 rows = 36 frames
+     *   - Frame: 287 × 269 px
+     */
+
+    .sprite-neil {
+      /* Base dimensions - will be scaled by JS */
+      width: 163px;
+      height: 268px;
+      background-image: url('./neil-walk-spritesheet.png');
+      background-size: 978px 1608px;
+      background-repeat: no-repeat;
+      background-position: 0 0;
+      transition: width 0.2s ease, height 0.2s ease, background-size 0.2s ease;
+    }
+
+    .sprite-leela {
+      /* Base dimensions - will be scaled by JS */
+      width: 287px;
+      height: 269px;
+      background-image: url('./leela-walk-spritesheet.png');
+      background-size: 1722px 1614px;
+      background-repeat: no-repeat;
+      background-position: 0 0;
+      transition: width 0.2s ease, height 0.2s ease, background-size 0.2s ease;
+    }
+
+    .flip-right {
+      transform: scaleX(-1);
+    }
+
+    .frame-counter {
+      margin-top: 0.75rem;
+      font-family: monospace;
+      font-size: 0.85rem;
+      color: #a0a0a0;
+    }
+
+    .info {
+      text-align: center;
+      margin-top: 2rem;
+      padding: 1rem;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 8px;
+      max-width: 700px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .info p {
+      color: #a0a0a0;
+      font-size: 0.85rem;
+      line-height: 1.6;
+    }
+
+    .info code {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 0.2rem 0.4rem;
+      border-radius: 4px;
+      font-family: 'SF Mono', Monaco, 'Courier New', monospace;
+      color: #e94560;
+    }
+
+    .keyboard-hints {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-top: 1rem;
+    }
+
+    .keyboard-hint {
+      font-size: 0.75rem;
+      color: #888;
+    }
+
+    .keyboard-hint kbd {
+      background: rgba(255, 255, 255, 0.15);
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+      margin-right: 0.25rem;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+  </style>
+</head>
+<body>
+  <h1>🐕 Neil & Leela Walking Animation POC</h1>
+  <p class="subtitle">Sprite sheet animation demo • Neil: 10fps • Leela: 23fps (0.4× Neil's height)</p>
+
+  <div class="controls">
+    <div class="control-group">
+      <button id="playPauseBtn">⏸ Pause</button>
+    </div>
+    <div class="control-group">
+      <label for="scaleSlider">Scale:</label>
+      <input type="range" id="scaleSlider" min="0.25" max="2" step="0.05" value="0.75">
+      <span id="scaleValue" class="value-display">0.75×</span>
+    </div>
+  </div>
+
+  <div class="sprites-container">
+    <div class="sprite-card">
+      <h3>🐕 Neil – Walking Left</h3>
+      <div class="sprite-wrapper neil">
+        <div class="sprite-neil" id="neil-left"></div>
+      </div>
+      <div class="frame-counter" id="neil-left-counter">Frame: 1/36</div>
+    </div>
+
+    <div class="sprite-card">
+      <h3>🐕 Neil – Walking Right</h3>
+      <div class="sprite-wrapper neil">
+        <div class="sprite-neil flip-right" id="neil-right"></div>
+      </div>
+      <div class="frame-counter" id="neil-right-counter">Frame: 1/36</div>
+    </div>
+
+    <div class="sprite-card">
+      <h3>🐱 Leela – Walking Left</h3>
+      <div class="sprite-wrapper leela">
+        <div class="sprite-leela" id="leela-left"></div>
+      </div>
+      <div class="frame-counter" id="leela-left-counter">Frame: 1/36</div>
+    </div>
+
+    <div class="sprite-card">
+      <h3>🐱 Leela – Walking Right</h3>
+      <div class="sprite-wrapper leela">
+        <div class="sprite-leela flip-right" id="leela-right"></div>
+      </div>
+      <div class="frame-counter" id="leela-right-counter">Frame: 1/36</div>
+    </div>
+  </div>
+
+  <div class="info">
+    <p>
+      <strong>Sprite Sheet Specs:</strong><br>
+      Neil: <code>neil-walk-spritesheet.png</code> — 978×1608px total, 6×6 grid, <code>163×268px</code> per frame<br>
+      Leela: <code>leela-walk-spritesheet.png</code> — 1722×1614px total, 6×6 grid, <code>287×269px</code> per frame<br><br>
+      <strong>Animation:</strong> JavaScript <code>requestAnimationFrame</code> with FPS control.<br>
+      <strong>Direction flip:</strong> Uses <code>transform: scaleX(-1)</code> for right-facing sprites.
+    </p>
+    <div class="keyboard-hints">
+      <span class="keyboard-hint"><kbd>Space</kbd> Play/Pause</span>
+      <span class="keyboard-hint"><kbd>↑</kbd><kbd>↓</kbd> Adjust FPS</span>
+      <span class="keyboard-hint"><kbd>+</kbd><kbd>-</kbd> Adjust Scale</span>
+    </div>
+  </div>
+
+  <script>
+    // ============================================
+    // CORRECT SPRITE SHEET SPECIFICATIONS
+    // ============================================
+    const SPRITES = {
+      neil: {
+        cols: 6,
+        rows: 6,
+        totalFrames: 36,
+        frameWidth: 163,
+        frameHeight: 268,
+        sheetWidth: 978,
+        sheetHeight: 1608
+      },
+      leela: {
+        cols: 6,
+        rows: 6,
+        totalFrames: 36,
+        frameWidth: 287,
+        frameHeight: 269,
+        sheetWidth: 1722,
+        sheetHeight: 1614
+      }
+    };
+
+    // State
+    let isPaused = false;
+    const NEIL_FPS = 10;    // Neil's animation speed
+    const LEELA_FPS = 23;   // Leela's animation speed
+    const LEELA_HEIGHT_RATIO = 0.4;  // Leela's height relative to Neil
+    let scale = 0.75;       // Default scale
+    let neilFrame = 0;
+    let leelaFrame = 0;
+    let neilLastFrameTime = 0;
+    let leelaLastFrameTime = 0;
+    let animationId = null;
+
+    // DOM Elements
+    const playPauseBtn = document.getElementById('playPauseBtn');
+    const scaleSlider = document.getElementById('scaleSlider');
+    const scaleValue = document.getElementById('scaleValue');
+
+    // Sprite elements
+    const neilLeft = document.getElementById('neil-left');
+    const neilRight = document.getElementById('neil-right');
+    const leelaLeft = document.getElementById('leela-left');
+    const leelaRight = document.getElementById('leela-right');
+
+    // Frame counters
+    const neilLeftCounter = document.getElementById('neil-left-counter');
+    const neilRightCounter = document.getElementById('neil-right-counter');
+    const leelaLeftCounter = document.getElementById('leela-left-counter');
+    const leelaRightCounter = document.getElementById('leela-right-counter');
+
+    /**
+     * Update sprite background position based on current frame
+     * @param {HTMLElement} element - The sprite element
+     * @param {number} frame - Current frame number (0-indexed)
+     * @param {Object} config - Sprite configuration
+     * @param {number} displayScale - The display scale to use
+     */
+    function updateSpritePosition(element, frame, config, displayScale) {
+      const col = frame % config.cols;
+      const row = Math.floor(frame / config.cols);
+      // Scale the position by display scale factor
+      const x = -(col * config.frameWidth * displayScale);
+      const y = -(row * config.frameHeight * displayScale);
+      element.style.backgroundPosition = `${x}px ${y}px`;
+    }
+
+    /**
+     * Update scale of all sprites
+     * @param {number} newScale - Scale factor
+     */
+    function updateScale(newScale) {
+      scale = newScale;
+      
+      // Calculate scaled dimensions for Neil (base scale)
+      const neilW = SPRITES.neil.frameWidth * scale;
+      const neilH = SPRITES.neil.frameHeight * scale;
+      const neilSheetW = SPRITES.neil.sheetWidth * scale;
+      const neilSheetH = SPRITES.neil.sheetHeight * scale;
+      
+      // Update Neil sprites - scale actual dimensions, not transform
+      [neilLeft, neilRight].forEach((sprite, idx) => {
+        sprite.style.width = `${neilW}px`;
+        sprite.style.height = `${neilH}px`;
+        sprite.style.backgroundSize = `${neilSheetW}px ${neilSheetH}px`;
+        sprite.style.transform = idx === 1 ? 'scaleX(-1)' : 'none';
+      });
+      
+      // Update Neil wrappers
+      const neilWrappers = document.querySelectorAll('.sprite-wrapper.neil');
+      neilWrappers.forEach(wrapper => {
+        wrapper.style.width = `${neilW}px`;
+        wrapper.style.height = `${neilH}px`;
+      });
+
+      // Calculate Leela scale: her height should be LEELA_HEIGHT_RATIO of Neil's height
+      // Neil's displayed height = neilH
+      // Leela's target height = neilH * LEELA_HEIGHT_RATIO
+      // Leela's scale factor = (neilH * LEELA_HEIGHT_RATIO) / SPRITES.leela.frameHeight
+      const leelaTargetH = neilH * LEELA_HEIGHT_RATIO;
+      const leelaScale = leelaTargetH / SPRITES.leela.frameHeight;
+      
+      const leelaW = SPRITES.leela.frameWidth * leelaScale;
+      const leelaH = SPRITES.leela.frameHeight * leelaScale;
+      const leelaSheetW = SPRITES.leela.sheetWidth * leelaScale;
+      const leelaSheetH = SPRITES.leela.sheetHeight * leelaScale;
+      
+      // Store leela's display scale for position calculations
+      window.leelaDisplayScale = leelaScale;
+      
+      // Update Leela sprites
+      [leelaLeft, leelaRight].forEach((sprite, idx) => {
+        sprite.style.width = `${leelaW}px`;
+        sprite.style.height = `${leelaH}px`;
+        sprite.style.backgroundSize = `${leelaSheetW}px ${leelaSheetH}px`;
+        sprite.style.transform = idx === 1 ? 'scaleX(-1)' : 'none';
+      });
+      
+      // Update Leela wrappers
+      const leelaWrappers = document.querySelectorAll('.sprite-wrapper.leela');
+      leelaWrappers.forEach(wrapper => {
+        wrapper.style.width = `${leelaW}px`;
+        wrapper.style.height = `${leelaH}px`;
+      });
+    }
+
+    /**
+     * Animation loop using requestAnimationFrame with separate FPS for each character
+     */
+    function animate(currentTime) {
+      if (!isPaused) {
+        const neilFrameInterval = 1000 / NEIL_FPS;
+        const leelaFrameInterval = 1000 / LEELA_FPS;
+        
+        // Update Neil at 10 FPS
+        if (currentTime - neilLastFrameTime >= neilFrameInterval) {
+          updateSpritePosition(neilLeft, neilFrame, SPRITES.neil, scale);
+          updateSpritePosition(neilRight, neilFrame, SPRITES.neil, scale);
+          neilLeftCounter.textContent = `Frame: ${neilFrame + 1}/${SPRITES.neil.totalFrames}`;
+          neilRightCounter.textContent = `Frame: ${neilFrame + 1}/${SPRITES.neil.totalFrames}`;
+          neilFrame = (neilFrame + 1) % SPRITES.neil.totalFrames;
+          neilLastFrameTime = currentTime;
+        }
+        
+        // Update Leela at 23 FPS
+        if (currentTime - leelaLastFrameTime >= leelaFrameInterval) {
+          const leelaScale = window.leelaDisplayScale || scale;
+          updateSpritePosition(leelaLeft, leelaFrame, SPRITES.leela, leelaScale);
+          updateSpritePosition(leelaRight, leelaFrame, SPRITES.leela, leelaScale);
+          leelaLeftCounter.textContent = `Frame: ${leelaFrame + 1}/${SPRITES.leela.totalFrames}`;
+          leelaRightCounter.textContent = `Frame: ${leelaFrame + 1}/${SPRITES.leela.totalFrames}`;
+          leelaFrame = (leelaFrame + 1) % SPRITES.leela.totalFrames;
+          leelaLastFrameTime = currentTime;
+        }
+      }
+      
+      animationId = requestAnimationFrame(animate);
+    }
+
+    /**
+     * Toggle play/pause state
+     */
+    function togglePlayPause() {
+      isPaused = !isPaused;
+      playPauseBtn.textContent = isPaused ? '▶ Play' : '⏸ Pause';
+      playPauseBtn.classList.toggle('paused', isPaused);
+    }
+
+    /**
+     * Update scale value
+     */
+    function updateScaleValue(value) {
+      const newScale = parseFloat(value);
+      scaleValue.textContent = `${newScale}×`;
+      updateScale(newScale);
+    }
+
+    // Event listeners
+    playPauseBtn.addEventListener('click', togglePlayPause);
+    scaleSlider.addEventListener('input', (e) => updateScaleValue(e.target.value));
+
+    // Keyboard shortcuts
+    document.addEventListener('keydown', (e) => {
+      switch (e.code) {
+        case 'Space':
+          e.preventDefault();
+          togglePlayPause();
+          break;
+        case 'ArrowUp':
+        case 'Equal':
+        case 'NumpadAdd':
+          e.preventDefault();
+          const newScaleUp = Math.min(2, scale + 0.05);
+          scaleSlider.value = newScaleUp;
+          updateScaleValue(newScaleUp);
+          break;
+        case 'ArrowDown':
+        case 'Minus':
+        case 'NumpadSubtract':
+          e.preventDefault();
+          const newScaleDown = Math.max(0.25, scale - 0.05);
+          scaleSlider.value = newScaleDown;
+          updateScaleValue(newScaleDown);
+          break;
+      }
+    });
+
+    // Initialize with default scale
+    updateScale(scale);
+    updateSpritePosition(neilLeft, 0, SPRITES.neil, scale);
+    updateSpritePosition(neilRight, 0, SPRITES.neil, scale);
+    const initialLeelaScale = (SPRITES.neil.frameHeight * scale * LEELA_HEIGHT_RATIO) / SPRITES.leela.frameHeight;
+    updateSpritePosition(leelaLeft, 0, SPRITES.leela, initialLeelaScale);
+    updateSpritePosition(leelaRight, 0, SPRITES.leela, initialLeelaScale);
+
+    // Start animation loop
+    animationId = requestAnimationFrame(animate);
+  </script>
+</body>
+</html>
