@@ -1759,8 +1759,11 @@
         }
       }
 
-      // Create cloud layers
-      createClouds();
+      // Create cloud layers (skip if noClouds param is set)
+      const noClouds = urlParams.has('noClouds');
+      if (!noClouds) {
+        createClouds();
+      }
 
       // Preload all sprites silently, then start entrance animation
       await preloadAllSprites();
