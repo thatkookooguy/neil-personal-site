@@ -1548,6 +1548,50 @@
     }
 
     // ============================================
+    // ADAPTIVE PERFORMANCE MONITORING
+    // ============================================
+    let performanceMultiplier = 1.0; // Reduces cloud count when frames drop
+    let frameDropCount = 0;
+    let frameSampleCount = 0;
+    let lastFrameTime = 0;
+    const TARGET_FRAME_TIME = 1000 / 30; // Target 30fps minimum
+    const FRAME_DROP_THRESHOLD = 0.15; // If more than 15% frames drop, reduce clouds
+    const SAMPLE_SIZE = 60; // Check every 60 frames
+    const MIN_PERFORMANCE_MULTIPLIER = 0.2; // Don't go below 20% of clouds
+    
+    function monitorPerformance(currentTime) {
+      if (lastFrameTime > 0) {
+        const frameTime = currentTime - lastFrameTime;
+        frameSampleCount++;
+        
+        if (frameTime > TARGET_FRAME_TIME) {
+          frameDropCount++;
+        }
+        
+        // Check performance every SAMPLE_SIZE frames
+        if (frameSampleCount >= SAMPLE_SIZE) {
+          const dropRate = frameDropCount / frameSampleCount;
+          
+          if (dropRate > FRAME_DROP_THRESHOLD && performanceMultiplier > MIN_PERFORMANCE_MULTIPLIER) {
+            // Reduce clouds by 20%
+            performanceMultiplier = Math.max(MIN_PERFORMANCE_MULTIPLIER, performanceMultiplier * 0.8);
+            console.log(`Frame drops detected (${(dropRate * 100).toFixed(1)}%), reducing clouds to ${(performanceMultiplier * 100).toFixed(0)}%`);
+            recreateCloudsWithTransition();
+          }
+          
+          // Reset counters
+          frameDropCount = 0;
+          frameSampleCount = 0;
+        }
+      }
+      lastFrameTime = currentTime;
+      requestAnimationFrame(monitorPerformance);
+    }
+    
+    // Start performance monitoring
+    requestAnimationFrame(monitorPerformance);
+
+    // ============================================
     // CLOUD GENERATION (matches talking-avatars)
     // ============================================
     let cloudTimelines = []; // Store timelines to kill on recreate
@@ -1614,12 +1658,14 @@
 
       // Calculate cloud count based on viewport width AND sky height
       // Base: 120 clouds per layer at 1920px width x 600px height
+      // Also applies performanceMultiplier for adaptive performance
       lastCloudWidth = vw;
       const baseHeight = 600;
       const baseClouds = 120;
       const widthFactor = vw / baseWidth;
       const heightFactor = skyHeight / baseHeight;
-      const cloudCount = Math.max(20, Math.round(baseClouds * widthFactor * heightFactor));
+      const baseCloudCount = Math.round(baseClouds * widthFactor * heightFactor);
+      const cloudCount = Math.max(10, Math.round(baseCloudCount * performanceMultiplier));
 
       const newClouds = [];
       
