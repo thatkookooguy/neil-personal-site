@@ -155,6 +155,41 @@
         #16213e 40%,
         #0f3460 100%
       );
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Cloud layers */
+    .cloudbox,
+    .cloudbox2 {
+      --cloud-color: white;
+      overflow: hidden;
+      filter: url("#fancy-goo");
+      -moz-filter: url("#fancy-goo");
+      position: absolute;
+      top: 0;
+      left: -25%;
+      bottom: 0;
+      width: 150%;
+      pointer-events: none;
+    }
+
+    .cloudbox span,
+    .cloudbox2 span {
+      position: absolute;
+      display: block;
+      width: 200px;
+      height: 20px;
+      background: var(--cloud-color);
+      border-radius: 10px;
+      transform-origin: 50% 50%;
+      opacity: 0.85;
+    }
+
+    /* Hidden SVG for goo filter */
+    .hidden-svg {
+      position: absolute;
+      height: 0;
     }
 
     /* Ground area - fixed height at bottom */
@@ -301,7 +336,7 @@
     }
 
     body.screensaver {
-      cursor: none;
+      /* cursor always visible */
     }
 
     body.screensaver .scene-container {
@@ -337,7 +372,10 @@
   </div>
 
   <div class="scene-container">
-    <div class="sky"></div>
+    <div class="sky">
+      <div class="cloudbox2" id="cloudbox2"></div>
+      <div class="cloudbox" id="cloudbox"></div>
+    </div>
     <div class="ground-area">
       <div class="walking-stage" id="walkingStage">
         <!-- Characters will be added via JavaScript -->
@@ -345,6 +383,9 @@
       <div class="ground"></div>
     </div>
   </div>
+
+  <!-- GSAP for cloud animations -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
 
   <script>
     // ============================================
@@ -1507,6 +1548,142 @@
     }
 
     // ============================================
+    // CLOUD GENERATION (matches talking-avatars)
+    // ============================================
+    let cloudTimelines = []; // Store timelines to kill on recreate
+    let lastCloudWidth = 0;
+    let isTransitioning = false;
+    
+    function createClouds(fadeIn = false) {
+      const cloudbox = document.getElementById('cloudbox');
+      const cloudbox2 = document.getElementById('cloudbox2');
+      
+      if (!cloudbox || !cloudbox2) return;
+
+      // Kill existing timelines
+      cloudTimelines.forEach(tl => tl.kill());
+      cloudTimelines = [];
+      cloudbox.innerHTML = '';
+      cloudbox2.innerHTML = '';
+
+      // Get the sky element's height for positioning
+      const sky = document.querySelector('.sky');
+      const skyHeight = sky ? sky.clientHeight : window.innerHeight;
+      // Clouds should stay in upper portion of sky (300px margin from bottom)
+      const cloudAreaHeight = Math.max(50, skyHeight - 300);
+
+      // Calculate speed multiplier based on viewport width
+      // Base: 400-900 seconds at 1920px width
+      const vw = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0);
+      const baseWidth = 1920;
+      const speedMultiplier = vw / baseWidth;
+
+      function createCloud(container, color) {
+        color = color || 'white';
+        container.style.setProperty('--cloud-color', color);
+        
+        // CREATE THE CLOUD SPAN
+        const cloud = document.createElement('span');
+        cloud.style.width = Math.abs(Math.random() * (180 - 60) + 60) + 'px';
+        
+        // Start with opacity 0 if fading in
+        if (fadeIn) {
+          cloud.style.opacity = '0';
+        }
+        
+        // ANIMATION VARIABLES - duration scales with viewport width for consistent perceived speed
+        const baseCloudTime = Math.abs(Math.random() * (900 - 400) + 400);
+        const cloudTime = baseCloudTime * speedMultiplier;
+        const cloudTop = Math.abs(Math.random() * cloudAreaHeight);
+        
+        // GSAP TIMELINES - horizontal movement only
+        const tlAcross = gsap.timeline({ repeat: -1 });
+        tlAcross
+          .set(cloud, { left: 0, top: cloudTop })
+          .seek(cloudTime * Math.random())
+          .to(cloud, { duration: cloudTime, left: '100%', ease: 'none' });
+        
+        // Store timeline for cleanup
+        cloudTimelines.push(tlAcross);
+        
+        // ADD IT TO THE CONTAINER
+        container.appendChild(cloud);
+        
+        return cloud;
+      }
+
+      // Calculate cloud count based on viewport width AND sky height
+      // Base: 120 clouds per layer at 1920px width x 600px height
+      lastCloudWidth = vw;
+      const baseHeight = 600;
+      const baseClouds = 120;
+      const widthFactor = vw / baseWidth;
+      const heightFactor = skyHeight / baseHeight;
+      const cloudCount = Math.max(20, Math.round(baseClouds * widthFactor * heightFactor));
+
+      const newClouds = [];
+      
+      // Create white clouds in front layer
+      for (let i = 0; i < cloudCount; i++) {
+        newClouds.push(createCloud(cloudbox, 'white'));
+      }
+
+      // Create darker grey clouds in back layer (more visible contrast)
+      for (let i = 0; i < cloudCount; i++) {
+        newClouds.push(createCloud(cloudbox2, '#a0a0a0'));
+      }
+      
+      // Fade in new clouds if requested
+      if (fadeIn) {
+        gsap.to(newClouds, { 
+          opacity: 1, 
+          duration: 1, 
+          stagger: 0.01,
+          onComplete: () => {
+            isTransitioning = false;
+          }
+        });
+      }
+    }
+    
+    function recreateCloudsWithTransition() {
+      if (isTransitioning) return;
+      isTransitioning = true;
+      
+      const cloudbox = document.getElementById('cloudbox');
+      const cloudbox2 = document.getElementById('cloudbox2');
+      
+      // Get all existing clouds
+      const existingClouds = [
+        ...cloudbox.querySelectorAll('span'),
+        ...cloudbox2.querySelectorAll('span')
+      ];
+      
+      // Fade out existing clouds
+      gsap.to(existingClouds, {
+        opacity: 0,
+        duration: 0.8,
+        onComplete: () => {
+          // Create new clouds with fade in
+          createClouds(true);
+        }
+      });
+    }
+
+    // Debounced resize handler for clouds
+    let cloudResizeTimeout;
+    window.addEventListener('resize', () => {
+      clearTimeout(cloudResizeTimeout);
+      cloudResizeTimeout = setTimeout(() => {
+        const vw = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0);
+        // Only recreate if width changed significantly (more than 200px)
+        if (Math.abs(vw - lastCloudWidth) > 200) {
+          recreateCloudsWithTransition();
+        }
+      }, 300);
+    });
+
+    // ============================================
     // INITIALIZE
     // ============================================
     async function init() {
@@ -1536,6 +1713,9 @@
         }
       }
 
+      // Create cloud layers
+      createClouds();
+
       // Preload all sprites silently, then start entrance animation
       await preloadAllSprites();
       
@@ -1551,5 +1731,16 @@
       init();
     }
   </script>
+
+  <!-- SVG filter for cloud goo effect -->
+  <svg class="hidden-svg">
+    <defs>
+      <filter id="fancy-goo">
+        <feGaussianBlur in="SourceGraphic" stdDeviation="5" result="blur" />
+        <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 19 -9" result="goo" />
+        <feComposite in="SourceGraphic" in2="goo" operator="atop" />
+      </filter>
+    </defs>
+  </svg>
 </body>
 </html>
