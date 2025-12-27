@@ -1612,11 +1612,14 @@
         return cloud;
       }
 
-      // Calculate cloud count based on viewport width
-      // Base: 120 clouds per layer at 1920px width
+      // Calculate cloud count based on viewport width AND sky height
+      // Base: 120 clouds per layer at 1920px width x 600px height
       lastCloudWidth = vw;
+      const baseHeight = 600;
       const baseClouds = 120;
-      const cloudCount = Math.max(20, Math.round((vw / baseWidth) * baseClouds));
+      const widthFactor = vw / baseWidth;
+      const heightFactor = skyHeight / baseHeight;
+      const cloudCount = Math.max(20, Math.round(baseClouds * widthFactor * heightFactor));
 
       const newClouds = [];
       
